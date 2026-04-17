@@ -21,7 +21,7 @@ const sidebarItems = [
   { icon: LayoutDashboard, label: 'OVERVIEW', path: '/dashboard' },
   { icon: Database, label: 'ASSETS', path: '/assets' },
   { icon: Users, label: 'WORKFORCE', path: '/workforce' },
-  { icon: Folder, label: 'DATASET', path: '/datasets' },
+  { icon: Folder, label: 'DATA INSIGHTS', path: '/datasets' },
   { icon: Clock, label: 'RECENT SCANS', path: '/recent' },
   { icon: History, label: 'DATA LOGS', path: '/history' },
   { icon: FileText, label: 'REPORTS', path: '/reports' },

@@ -21,7 +21,7 @@ export default function DatasetPage() {
               Inventory Architecture
             </span>
             <h1 className="text-5xl font-extrabold text-[#0f2e1f] tracking-tight font-display">
-              Dataset Overview
+              Data Insights
             </h1>
           </div>
           <div className="max-w-md pt-6">

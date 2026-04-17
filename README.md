@@ -2,16 +2,31 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# ArborX AI - Infrastructure Integrity Platform
 
-This contains everything you need to run your app locally.
+This repository contains the source code for the ArborX AI platform, a high-fidelity monitoring system for industrial infrastructure.
 
-View your app in AI Studio: https://ai.studio/apps/e7e1b349-8dfc-46cf-8876-b661ff048a2a
+
+## About This Project
+
+**ArborX AI** is a state-of-the-art infrastructure monitoring and vegetation management platform. It leverages high-resolution spectral imagery and deep learning to identify anomalies in industrial corridors, ensuring regional grid integrity and preventing environmental hazards.
+
+### Core Features
+- **Neural Processing Pipeline**: Automated multi-spectral data analysis using the proprietary *ArborDetect* CNN architecture.
+- **Territory Risk Heatmaps**: Real-time visual tracking of structural anomalies and vegetation encroachment across high-voltage sectors.
+- **Data Insights**: A comprehensive archive of industrial imagery calibrated for model training and environmental synthesis.
+- **Professional Reporting**: Integrated PDF export engine for technical audits and board-level executive briefings.
+- **Predictive ROI Analytics**: Maintenance planning tools that calculate savings from preventative vs. reactive infrastructure work.
+
+### Technology Stack
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS 4.0, Lucide Icons, Framer Motion
+- **Data Visualization**: Recharts (for uptime and accuracy trends)
+- **Document Generation**: jsPDF
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
    `npm install`

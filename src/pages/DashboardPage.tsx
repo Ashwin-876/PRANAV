@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
+import { jsPDF } from 'jspdf';
 
 const trendData = [
   { name: 'Mon', value: 99.80 },
@@ -37,6 +38,54 @@ const accuracyData = [
 ];
 
 export default function DashboardPage() {
+  const handleExport = (title?: any) => {
+    const isString = typeof title === 'string';
+    const reportName = isString ? title : "Regional Infrastructure Integrity Report Q3 2024";
+    const filename = (isString ? title.replace(/\s+/g, '_') : "Regional_Infrastructure_Integrity_Report_Q3_2024").toLowerCase();
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(15, 46, 31); // #0f2e1f
+    doc.text("ArborX AI - Regional Integrity Audit", 20, 30);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(100);
+    doc.text(reportName, 20, 45);
+    
+    doc.setLineWidth(0.5);
+    doc.line(20, 50, 190, 50);
+    
+    // Content
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 65);
+    
+    doc.setFontSize(14);
+    doc.text("Executive Summary", 20, 85);
+    doc.setFontSize(11);
+    const splitText = doc.splitTextToSize(
+      "This document provides a comprehensive analysis of spectral imagery and telemetry data processed via the ArborDetect neural pipeline. The regional infrastructure exhibits a 99.82% integrity rating for the current quarter.",
+      170
+    );
+    doc.text(splitText, 20, 95);
+    
+    doc.setFontSize(14);
+    doc.text("Technical Metrics", 20, 120);
+    doc.setFontSize(11);
+    doc.text(`- Regional Grid Uptime: 99.82%`, 25, 130);
+    doc.text(`- AI Accuracy Trend: 94.1%`, 25, 140);
+    doc.text(`- Maintenance ROI: $4.2M (Projected)`, 25, 150);
+    
+    // Footer
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text("Confidential technical documentation - ArborX AI Internal", 20, 280);
+    
+    doc.save(`${filename}.pdf`);
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-10">
       <header className="flex items-end justify-between">
@@ -145,7 +194,10 @@ export default function DashboardPage() {
                 <h3 className="text-2xl font-display font-bold">Quarterly Infrastructure Health Report</h3>
                 <p className="text-on-surface-variant text-sm mt-1">Validated technical documentation for board review</p>
               </div>
-              <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl text-xs font-bold shadow-lg hover:shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <button 
+                onClick={() => handleExport()}
+                className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl text-xs font-bold shadow-lg hover:shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
                 <Download className="w-4 h-4" />
                 EXPORT FULL PDF
               </button>
@@ -158,7 +210,11 @@ export default function DashboardPage() {
                 { title: 'RISK ASSESSMENT', date: 'Review Required', status: 'DRAFT', icon: AlertTriangle, isDraft: true },
                 { title: 'AI MODEL DRIFT', date: 'Updated 4h ago', status: 'FINALIZED', icon: Lightbulb },
               ].map((row, i) => (
-                <div key={i} className="flex items-center justify-between p-5 bg-surface-container-low/50 rounded-xl hover:bg-surface-container-high transition-all group cursor-pointer border border-transparent hover:border-outline-variant/20">
+                <div 
+                  key={i} 
+                  onClick={() => handleExport(row.title)}
+                  className="flex items-center justify-between p-5 bg-surface-container-low/50 rounded-xl hover:bg-surface-container-high transition-all group cursor-pointer border border-transparent hover:border-outline-variant/20"
+                >
                   <div className="flex items-center gap-4">
                     <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110", row.isDraft ? "bg-red-50" : "bg-primary/5")}>
                       <row.icon className={cn("w-5 h-5", row.isDraft ? "text-red-500" : "text-primary")} />
