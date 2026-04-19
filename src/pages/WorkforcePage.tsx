@@ -1,191 +1,231 @@
-import React from 'react';
-import { MapPin, Users, History, Navigation, Thermometer, ShieldAlert, Share2, Plus, Minus, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Users, Navigation, Thermometer, ShieldAlert, Zap, TreePine, Search, Bell, Settings } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker } from 'react-leaflet';
+import L from 'leaflet';
 import { cn } from '../lib/utils';
 
+const createCrewIcon = (color: string, isMoving: boolean) => {
+  // Use truck icon for all crews, whether moving or stationary
+  const truckSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>`;
+  return L.divIcon({
+    className: 'custom-leaflet-icon bg-transparent border-0',
+    html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px ${color}; display: flex; align-items: center; justify-content: center;">${truckSvg}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+};
+
+const createWarningIcon = (priority: string) => {
+  const color = priority === 'High' ? '#ef4444' : '#f97316';
+  const size = priority === 'High' ? 40 : 30;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+  return L.divIcon({
+    className: 'custom-leaflet-icon bg-transparent border-0 animate-pulse',
+    html: `<div style="filter: drop-shadow(0 0 12px ${color});">${svg}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2]
+  });
+};
+
+const colors = {
+  active: '#10b981', // green
+  repairing: '#3b82f6', // blue
+  alert: '#ef4444', // red
+  idle: '#9ca3af' // grey
+};
+
+const mapCenter: [number, number] = [11.2393, 76.9600]; // Karamadai, Coimbatore
+
+// Mock data - localized around Karamadai, Coimbatore
+const initialCrews = [
+  { id: 'c1', name: 'Crew-Alfa', status: 'In Transit', loc: [11.2250, 76.9400], target: [11.2420, 76.9580], color: colors.active, eta: '4 mins', operators: 3, vehicle: '1 Vehicle', img: 'https://picsum.photos/seed/c1/100/100' },
+  { id: 'c2', name: 'Crew-Bravo', status: 'Repairing', loc: [11.2350, 76.9650], target: null, color: colors.repairing, progress: '65%', operators: 2, vehicle: 'Heavy Rig', img: 'https://picsum.photos/seed/c2/100/100' },
+  { id: 'c3', name: 'Crew-Delta', status: 'Stalled', loc: [11.2500, 76.9500], target: null, color: colors.idle, operators: 4, vehicle: 'Crane', img: 'https://picsum.photos/seed/c3/100/100' },
+  { id: 'c4', name: 'Crew-Echo', status: 'In Transit', loc: [11.2600, 76.9750], target: [11.2420, 76.9580], color: colors.active, eta: '12 mins', operators: 2, vehicle: 'Light Truck', img: 'https://picsum.photos/seed/c4/100/100' },
+];
+
+const alerts = [
+  { id: 'AN-9044', time: 'Just now', title: 'Power Line Broken', desc: 'Critical infrastructure failure. Main high-tension line severed. Dispatch crews immediately.', type: 'Critical Fault', priority: 'High', locName: 'KARAMADAI, SECTOR 7', coords: [11.2420, 76.9580], icon: Zap },
+  { id: 'AN-8912', time: '14m ago', title: 'Pressure Drop Detected', desc: 'Main conduit showing 15% pressure variance from baseline.', type: 'Sensor Alert', priority: 'Medium', locName: 'METTUPALAYAM ROAD', coords: [11.2350, 76.9650], icon: Thermometer },
+  { id: 'AN-7740', time: '45m ago', title: 'Vegetation Encroachment', desc: 'LiDAR scan detected high-risk growth near local transformer.', type: 'Tree Risk', priority: 'Low', locName: 'BELLADHI LAKE AREA', coords: [11.2500, 76.9500], icon: TreePine },
+];
+
 export default function WorkforcePage() {
+  const [crews, setCrews] = useState(initialCrews);
+
+  // Simulate movement for in-transit crews
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCrews(prev => prev.map(crew => {
+        if (crew.status === 'In Transit' && crew.target) {
+          const dx = (crew.target[0] - crew.loc[0]) * 0.05;
+          const dy = (crew.target[1] - crew.loc[1]) * 0.05;
+          // Simple mock: slowly move towards target
+          return { ...crew, loc: [crew.loc[0] + dx, crew.loc[1] + dy] as [number, number] };
+        }
+        return crew;
+      }));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="max-w-7xl mx-auto space-y-12">
-      <header className="flex items-center justify-between">
-        <div>
-          <span className="text-[10px] font-mono font-bold tracking-[0.3em] uppercase opacity-50 block mb-2">WORKFORCE OPERATIONAL HUB</span>
-          <h1 className="text-5xl font-display font-extrabold text-primary">Team Collaboration & Dispatch</h1>
+    <div className="h-[calc(100vh-2rem)] flex flex-col gap-6 max-w-[1600px] mx-auto overflow-hidden">
+      {/* Top Bar */}
+      <header className="flex items-center justify-between bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 shadow-sm shrink-0">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="relative w-96">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+            <input 
+              type="text" 
+              placeholder="Search location or anomaly..." 
+              className="w-full bg-surface-container-high pl-12 pr-4 py-2.5 rounded-xl border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm font-bold"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-3 px-5 py-2.5 bg-surface-container-high rounded-lg">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          <span className="text-[10px] font-mono font-bold tracking-widest opacity-60 uppercase">14 ACTIVE CREWS</span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 px-4 py-2 bg-surface-container-high rounded-xl border border-outline-variant/10">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            <span className="text-[10px] font-mono font-bold tracking-widest opacity-80 uppercase">14 ACTIVE CREWS</span>
+          </div>
+          <button className="relative p-2 text-on-surface-variant hover:text-primary transition-colors">
+            <Bell className="w-5 h-5" />
+            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-surface-container-low" />
+          </button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-4 space-y-8">
-           <div className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10">
-            <header className="flex items-center justify-between mb-10">
-              <div className="flex items-center gap-4">
-                <ShieldAlert className="w-8 h-8 text-on-surface opacity-30" />
-                <h3 className="text-2xl font-display font-bold">Incoming Alerts</h3>
+      {/* Main Content: 3 Columns */}
+      <div className="flex-1 flex gap-6 min-h-0">
+        
+        {/* Left Panel: Alerts */}
+        <div className="w-80 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar shrink-0">
+          <div className="flex items-center gap-3 mb-2 px-2">
+            <ShieldAlert className="w-6 h-6 text-primary" />
+            <h3 className="text-xl font-display font-bold">Incoming Alerts</h3>
+          </div>
+          {alerts.map((alert, i) => (
+            <div key={i} className={cn(
+              "p-5 rounded-2xl border transition-all cursor-pointer backdrop-blur-md",
+              alert.priority === 'High' ? "bg-red-500/5 border-red-500/30 shadow-[0_4px_20px_rgba(239,68,68,0.1)]" : "bg-surface-container-lowest border-outline-variant/10 hover:border-primary/30"
+            )}>
+              <div className="flex justify-between items-start mb-4">
+                <span className={cn(
+                  "px-2 py-0.5 text-[9px] font-black rounded uppercase tracking-wider",
+                  alert.priority === 'High' ? "bg-red-100 text-red-700" : 
+                  alert.priority === 'Medium' ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"
+                )}>
+                  {alert.priority} PRIORITY
+                </span>
+                <span className="text-[10px] font-bold opacity-40">{alert.time}</span>
               </div>
-              <span className="px-3 py-1 bg-red-100 text-red-700 text-[10px] font-black rounded font-mono uppercase">HIGH PRIORITY</span>
-            </header>
-            
-            <div className="space-y-4">
-              {[
-                { id: 'AN-9044', time: '2m ago', title: 'Substation Thermal Spike', desc: 'Temperature exceeded 85°C at Grid Sector 7-B. Immediate cooling check required.', loc: 'NORTHERN QUADRANT, SECTOR 7-B', active: true },
-                { id: 'AN-8912', time: '14m ago', title: 'Pressure Drop Detected', desc: 'Main conduit C-4 showing 15% pressure variance from baseline. Non-critical leak suspected.', loc: 'RIVERFRONT DISTRICT, AREA 12' },
-                { id: 'AN-7740', time: '45m ago', title: 'Vegetation Encroachment', desc: 'LiDAR scan detected high-risk growth within 2m of high-tension line 44.', loc: 'EASTERN GREENBELT' },
-              ].map((alert, i) => (
-                <div key={i} className={cn("p-8 rounded-xl border transition-all cursor-pointer group", alert.active ? "bg-white ring-4 ring-primary/5 border-primary shadow-xl" : "bg-surface-container-low border-transparent hover:bg-surface-container-high")}>
-                  <div className="flex justify-between items-center mb-6">
-                    <span className="text-[10px] font-mono font-bold opacity-40">ANOMALY ID: {alert.id}</span>
-                    <span className="text-xs font-bold opacity-30">{alert.time}</span>
-                  </div>
-                  <h4 className="text-lg font-display font-bold mb-3">{alert.title}</h4>
-                  <p className="text-xs text-on-surface-variant leading-relaxed font-medium mb-8">{alert.desc}</p>
-                  <div className="flex items-center gap-2 text-[10px] font-mono font-bold opacity-50 flex-wrap">
-                    <MapPin className="w-3 h-3" /> {alert.loc}
-                  </div>
-                </div>
-              ))}
+              <div className="flex items-center gap-2 mb-2">
+                <alert.icon className={cn("w-4 h-4", alert.priority === 'High' ? "text-red-500" : "text-primary")} />
+                <h4 className="text-sm font-display font-bold">{alert.type}</h4>
+              </div>
+              <p className="text-xs text-on-surface-variant font-medium leading-relaxed mb-4 line-clamp-2">{alert.desc}</p>
+              <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold opacity-60">
+                <MapPin className="w-3 h-3" /> {alert.locName}
+              </div>
             </div>
-           </div>
-
-           <div className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10">
-             <h3 className="text-2xl font-display font-bold mb-10">History & Analytics</h3>
-             <div className="grid grid-cols-2 gap-4 mb-10">
-               <div className="bg-emerald-50/50 p-8 rounded-2xl border border-emerald-500/10 text-center">
-                 <div className="text-[10px] font-mono font-bold opacity-50 uppercase mb-2">SUCCESS RATE</div>
-                 <div className="text-4xl font-display font-black text-emerald-700">98.4%</div>
-               </div>
-               <div className="bg-blue-50/50 p-8 rounded-2xl border border-blue-500/10 text-center">
-                 <div className="text-[10px] font-mono font-bold opacity-50 uppercase mb-2">AVG RESPONSE</div>
-                 <div className="text-4xl font-display font-black text-blue-700">22m</div>
-               </div>
-             </div>
-             <div className="space-y-6">
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="opacity-60 uppercase">Repair #8821 (Grid-7)</span>
-                  <span className="text-emerald-600">COMPLETED</span>
-                </div>
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="opacity-60 uppercase">Inspection #8819 (Conduit)</span>
-                  <span className="text-emerald-600">COMPLETED</span>
-                </div>
-             </div>
-           </div>
+          ))}
         </div>
 
-        <div className="lg:col-span-8 space-y-10">
-          <div className="bg-surface-container-lowest px-1 rounded-xxl overflow-hidden shadow-sm border border-outline-variant/10 relative min-h-[500px] flex flex-col group">
-             <div className="absolute inset-x-1 top-1 bottom-1 bg-surface-container-high rounded-xxl overflow-hidden">
-               <img src="https://picsum.photos/seed/city-top/1500/1000?grayscale" className="w-full h-full object-cover opacity-60 grayscale blur-sm" referrerPolicy="no-referrer" />
-               <div className="absolute inset-0 bg-black/40" />
-             </div>
-             
-             <div className="relative z-10 m-10 bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 w-80">
-                <div className="text-[10px] font-mono font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" /> LIVE GPS TRACKING
-                </div>
-                <div className="space-y-4">
-                  {[
-                    { name: 'CREW-ALFA', status: '(In Transit)', color: 'bg-emerald-500' },
-                    { name: 'CREW-BRAVO', status: '(Repairing)', color: 'bg-blue-500' },
-                    { name: 'CREW-DELTA', status: '(Stalled)', color: 'bg-blue-200' },
-                  ].map((crew, i) => (
-                    <div key={i} className="flex items-center gap-4 text-xs font-bold text-white">
-                      <div className={cn("w-3 h-3 rounded-full", crew.color)} />
-                      <span>{crew.name} <span className="opacity-50 font-normal">{crew.status}</span></span>
-                    </div>
-                  ))}
-                </div>
-             </div>
+        {/* Center Panel: Map */}
+        <div className="flex-1 bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/10 shadow-lg relative min-h-0 z-0">
+          <MapContainer center={mapCenter} zoom={13} className="w-full h-full" zoomControl={false}>
+            <TileLayer
+              attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            />
+            {/* Alerts warning markers */}
+            {alerts.map((alert, i) => (
+              <Marker 
+                key={`alert-${i}`} 
+                position={alert.coords as [number, number]} 
+                icon={createWarningIcon(alert.priority)}
+              >
+                <Popup className="font-sans">
+                  <strong className="text-sm font-bold text-gray-900">{alert.title}</strong><br/>
+                  <span className="text-xs text-gray-600 font-medium">{alert.type}</span>
+                </Popup>
+              </Marker>
+            ))}
 
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-                <div className="w-64 h-64 border border-white/20 rounded-full animate-[ping_3s_linear_infinite] pointer-events-none" />
-                <div className="absolute w-12 h-12 bg-primary rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
-                   <Navigation className="w-5 h-5 text-white animate-bounce" />
-                </div>
-             </div>
+            {/* Crew Routes */}
+            {crews.map(crew => crew.target && (
+              <Polyline 
+                key={`path-${crew.id}`} 
+                positions={[crew.loc as [number, number], crew.target as [number, number]]} 
+                pathOptions={{ color: crew.color, weight: 2, dashArray: '5, 10', className: 'opacity-50' }} 
+              />
+            ))}
 
-             <div className="mt-auto m-10 flex gap-6 z-10">
-                <div className="flex-1 bg-white/95 shadow-2xl p-6 rounded-2xl flex items-center gap-6 border-l-8 border-primary">
-                   <div className="w-16 h-16 bg-surface-container-high rounded-xl overflow-hidden shadow-inner">
-                      <img src="https://picsum.photos/seed/leader/100/100" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                   </div>
-                   <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-[10px] font-mono font-bold opacity-40 uppercase">ACTIVE DISPATCH</span>
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                      </div>
-                      <h4 className="text-xl font-display font-bold">Leader: Marcus Thorne</h4>
-                      <div className="text-xs font-black text-primary uppercase tracking-widest mt-1">EN ROUTE TO GRID SECTOR 7-B</div>
-                   </div>
-                </div>
-                <div className="bg-white/95 shadow-2xl p-6 rounded-2xl flex flex-col items-center justify-center gap-2 border border-outline-variant/20">
-                   {[Plus, Minus, Navigation].map((Icon, i) => (
-                      <button key={i} className="p-3 hover:bg-surface-container-high rounded-lg transition-colors text-on-surface-variant"><Icon className="w-5 h-5" /></button>
-                   ))}
-                </div>
+            {/* Crew Markers */}
+            {crews.map(crew => (
+              <Marker key={crew.id} position={crew.loc as [number, number]} icon={createCrewIcon(crew.color, crew.status === 'In Transit')}>
+                <Popup>
+                  <strong className="font-bold text-gray-900">{crew.name}</strong><br/>
+                  <span className="text-sm text-gray-600 font-medium">{crew.status}</span>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+          
+          {/* Map Overlays */}
+          <div className="absolute top-6 left-6 z-[400] flex flex-col gap-2 pointer-events-none">
+             <div className="px-4 py-3 bg-black/80 backdrop-blur-md rounded-xl border border-white/10 text-white shadow-xl">
+               <div className="text-[10px] font-mono font-bold tracking-widest opacity-60 mb-1">REGION</div>
+               <div className="text-sm font-bold flex items-center gap-2"><Navigation className="w-3 h-3 text-primary" /> Karamadai, Coimbatore</div>
              </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-surface-container-lowest p-8 rounded-xxl shadow-sm border border-outline-variant/10 flex items-center justify-between group cursor-pointer hover:shadow-xl transition-all">
-               <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl overflow-hidden border-2 border-white shadow-xl">
-                     <img src="https://picsum.photos/seed/c1/100/100" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                  <div>
-                     <h4 className="text-lg font-display font-bold">Crew-Alfa</h4>
-                     <p className="text-xs font-medium text-on-surface-variant mt-1 italic">3 Operators • 1 Vehicle</p>
-                  </div>
-               </div>
-               <div className="text-right">
-                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded uppercase">IN TRANSIT</span>
-                  <div className="text-[10px] font-mono font-bold opacity-30 mt-2">ETA: 4 mins</div>
-               </div>
-            </div>
-            <div className="bg-surface-container-lowest p-8 rounded-xxl shadow-sm border border-outline-variant/10 flex items-center justify-between group cursor-pointer hover:shadow-xl transition-all opacity-80 grayscale-[0.5]">
-               <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl overflow-hidden border-2 border-white shadow-xl">
-                     <img src="https://picsum.photos/seed/c2/100/100" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                  <div>
-                     <h4 className="text-lg font-display font-bold">Crew-Bravo</h4>
-                     <p className="text-xs font-medium text-on-surface-variant mt-1 italic">2 Operators • Heavy Rig</p>
-                  </div>
-               </div>
-               <div className="text-right">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-[10px] font-black rounded uppercase">REPAIRING</span>
-                  <div className="text-[10px] font-mono font-bold opacity-30 mt-2">Progress: 65%</div>
-               </div>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10">
-             <header className="flex items-center justify-between mb-10">
-                <h3 className="text-2xl font-display font-bold">Shift Availability</h3>
-                <div className="flex gap-6">
-                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                      <div className="w-2.5 h-2.5 bg-primary rounded-full" /> FULL
-                   </div>
-                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase opacity-30">
-                      <div className="w-2.5 h-2.5 bg-outline-variant rounded-full" /> PARTIAL
-                   </div>
-                </div>
-             </header>
-             <div className="bg-surface-container-high/40 rounded-3xl p-4">
-                <div className="grid grid-cols-7 gap-4 text-center text-[10px] font-bold opacity-40 uppercase tracking-widest mb-4">
-                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => <div key={d}>{d}</div>)}
-                </div>
-                <div className="grid grid-cols-7 gap-4 text-center">
-                   {[12, 13, 14, 15, 16, 17, 18].map(d => (
-                      <div key={d} className={cn("py-4 rounded-xl text-xs font-black transition-all cursor-pointer", d === 15 ? "bg-primary text-white shadow-xl shadow-primary/20 scale-110" : "bg-white hover:bg-surface text-on-surface-variant border border-outline-variant/10 shadow-sm")}>
-                         {d}
-                      </div>
-                   ))}
-                </div>
-             </div>
+          
+          <div className="absolute bottom-6 left-6 z-[400] px-4 py-3 bg-black/80 backdrop-blur-md rounded-xl border border-white/10 text-white flex gap-6 shadow-xl pointer-events-none">
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest"><div className="w-2 h-2 rounded-full bg-emerald-500"/> ACTIVE</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest"><div className="w-2 h-2 rounded-full bg-blue-500"/> REPAIRING</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest"><div className="w-2 h-2 rounded-full bg-red-500"/> ALERT</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest"><div className="w-2 h-2 rounded-full bg-gray-400"/> IDLE</div>
           </div>
         </div>
+
+        {/* Right Panel: Dispatch Info */}
+        <div className="w-80 flex flex-col gap-4 overflow-y-auto pl-2 custom-scrollbar shrink-0">
+          <div className="flex items-center gap-3 mb-2 px-2">
+            <Users className="w-6 h-6 text-primary" />
+            <h3 className="text-xl font-display font-bold">Active Dispatch</h3>
+          </div>
+          {crews.map((crew, i) => (
+            <div key={i} className="p-5 bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: crew.color }} />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl overflow-hidden border border-outline-variant/20 shadow-sm">
+                  <img src={crew.img} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-display font-bold">{crew.name}</h4>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: crew.color }} />
+                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase opacity-60">{crew.status}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="bg-surface-container-low rounded-lg p-2 text-center">
+                  <div className="text-[9px] font-mono font-bold opacity-40 uppercase">ETA / Progress</div>
+                  <div className="text-xs font-bold text-on-surface-variant mt-0.5">{crew.eta || crew.progress || '--'}</div>
+                </div>
+                <div className="bg-surface-container-low rounded-lg p-2 text-center">
+                  <div className="text-[9px] font-mono font-bold opacity-40 uppercase">Details</div>
+                  <div className="text-xs font-bold text-on-surface-variant mt-0.5">{crew.operators} Ops</div>
+                </div>
+              </div>
+              <button className="w-full py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-xl text-xs font-bold transition-colors">
+                Assign / Reassign
+              </button>
+            </div>
+          ))}
+        </div>
+        
       </div>
     </div>
   );

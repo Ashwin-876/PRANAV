@@ -29,39 +29,7 @@ const stats = [
 export default function AboutPage() {
   return (
     <div className="max-w-6xl mx-auto py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-        <div className="lg:col-span-7">
-          <span className="text-[10px] font-mono font-bold tracking-[0.3em] uppercase text-primary/60 mb-6 block">
-            OUR METHODOLOGY
-          </span>
-          <h1 className="text-7xl font-display font-extrabold leading-[1.1] text-on-surface mb-8">
-            Bridging the Gap Between <span className="text-primary italic">Nature</span> & <span className="text-[#3b82f6]">Grid.</span>
-          </h1>
-          <p className="text-xl text-on-surface-variant leading-relaxed max-w-xl">
-            The Digital Surveyor was born from a singular mission: to protect modern infrastructure using advanced AI that understands the organic complexity of the environment. We don't just see pixels; we see the health of the power grid.
-          </p>
-        </div>
-        
-        <div className="lg:col-span-5 relative">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-[32px] overflow-hidden shadow-2xl relative z-10"
-          >
-            <img 
-              src="https://picsum.photos/seed/pylon/800/1000" 
-              alt="Power Line Infrastructure" 
-              className="w-full h-full object-cover aspect-[4/5]"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
-          </motion.div>
-          
-          <div className="absolute -bottom-6 -right-6 w-full h-full bg-primary/5 rounded-[32px] -z-10 blur-xl" />
-        </div>
-      </div>
-
-      <div className="mt-40 text-center max-w-3xl mx-auto mb-20">
+      <div className="text-center max-w-3xl mx-auto mb-20">
         <h2 className="text-4xl font-display font-bold mb-6">Social Impact & Infrastructure Safety</h2>
         <p className="text-on-surface-variant text-lg">
           A single fallen branch can disconnect thousands of families from essential services. Our technology prioritizes vegetation management to prevent outages before they happen.

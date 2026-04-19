@@ -1,187 +1,326 @@
-import React from 'react';
-import { User, Phone, Mail, Lock, Bell, Activity, Key, Copy, Trash2, HelpCircle, ChevronRight, Info, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  User, 
+  Bell, 
+  BrainCircuit, 
+  MapPin, 
+  Moon, 
+  Sun,
+  ShieldAlert,
+  Zap,
+  Globe
+} from 'lucide-react';
 import { cn } from '../lib/utils';
 
+// Helper component for Toggle Switch
+const Toggle = ({ active, onChange }: { active: boolean, onChange: () => void }) => (
+  <button 
+    onClick={onChange}
+    className={cn(
+      "w-12 h-6 rounded-full p-1 transition-colors flex items-center shadow-inner focus:outline-none focus:ring-2 focus:ring-primary/50", 
+      active ? "bg-primary" : "bg-surface-container-highest"
+    )}
+  >
+    <div className={cn(
+      "w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300", 
+      active ? "translate-x-6" : "translate-x-0"
+    )} />
+  </button>
+);
+
 export default function SettingsPage() {
+  const navigate = useNavigate();
+  const [alerts, setAlerts] = useState({
+    treeAnomaly: { email: true, sms: true, push: true },
+    powerLine: { email: true, sms: true, push: false },
+    system: { email: true, sms: false, push: false },
+  });
+
+  const [aiSettings, setAiSettings] = useState({
+    model: 'CNN',
+    confidence: 85,
+    sensitivity: 70,
+    autoDetect: true
+  });
+
+  const [regionSettings, setRegionSettings] = useState({
+    region: 'Northwest District',
+    autoScan: true,
+    riskFilters: ['High', 'Critical']
+  });
+
+  const [uiPrefs, setUiPrefs] = useState({
+    darkMode: false,
+    language: 'English'
+  });
+
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
+    <div className="max-w-4xl mx-auto space-y-10 pb-20">
       <header>
-        <h1 className="text-5xl font-display font-extrabold text-on-surface mb-2">Settings</h1>
-        <nav className="flex items-center gap-8 mt-6 pb-2 border-b border-outline-variant/10">
-           {['Dashboard', 'Map', 'Reports', 'Settings'].map(tab => (
-             <a key={tab} href="#" className={cn("text-xs font-black uppercase tracking-[0.2em] transition-all border-b-2 py-2 -mb-[10px]", tab === 'Settings' ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-on-surface")}>
-               {tab}
-             </a>
-           ))}
-        </nav>
+        <span className="text-[10px] font-mono font-bold tracking-[0.3em] uppercase text-on-surface-variant block mb-2">
+          CONFIGURATION
+        </span>
+        <h1 className="text-5xl font-display font-extrabold text-on-surface">System Settings</h1>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-4 space-y-8">
-           <div className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10 text-center flex flex-col items-center">
-              <div className="relative mb-10 group">
-                <div className="w-32 h-32 rounded-3xl overflow-hidden shadow-2xl transform transition-transform group-hover:scale-105 border-4 border-white">
-                   <img src="https://picsum.photos/seed/marcus-large/200/200" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                </div>
-                <div className="absolute -bottom-4 -right-4 p-3 bg-white shadow-xl rounded-2xl border border-outline-variant/10">
-                   <Activity className="w-5 h-5 text-emerald-500" />
-                </div>
-              </div>
-              <h2 className="text-3xl font-display font-extrabold mb-1">Marcus Thorne</h2>
-              <p className="text-sm font-bold text-on-surface-variant mb-6 italic opacity-60 font-mono">Senior Infrastructure Surveyor</p>
-              
-              <div className="bg-emerald-100/50 text-emerald-800 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-emerald-500/10 mb-10">
-                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> VERIFIED OPERATOR
-              </div>
+      {/* 1. Account Access */}
+      <section className="bg-surface-container-lowest p-8 md:p-10 rounded-xxl shadow-sm border border-outline-variant/10">
+        <header className="flex items-center gap-4 mb-8">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <User className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-2xl font-display font-bold">Account Access</h2>
+        </header>
 
-              <div className="w-full space-y-8 text-left pt-10 border-t border-outline-variant/10">
-                 <div>
-                    <label className="text-[10px] font-mono font-bold opacity-30 uppercase tracking-widest mb-1.5 block">OPERATOR ID</label>
-                    <div className="text-sm font-black font-mono tracking-tight">DS-9928-ALPHA</div>
-                 </div>
-                 <div>
-                    <label className="text-[10px] font-mono font-bold opacity-30 uppercase tracking-widest mb-1.5 block">REGION ASSIGNMENT</label>
-                    <div className="text-sm font-bold tracking-wide">Pacific Northwest District</div>
-                 </div>
-              </div>
-           </div>
-
-           <div className="bg-primary-container text-white p-10 rounded-xxl shadow-xl border-l-[12px] border-emerald-500 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                 <Activity className="w-32 h-32" />
-              </div>
-              <h3 className="text-xs font-mono font-bold tracking-[0.3em] uppercase opacity-50 mb-8">ACCOUNT HEALTH</h3>
-              <div className="flex justify-between items-end mb-4">
-                 <span className="text-[10px] font-bold uppercase opacity-60">API QUOTA</span>
-                 <span className="text-sm font-black text-emerald-300">82% REMAINING</span>
-              </div>
-              <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-6">
-                 <div className="h-full bg-emerald-400 rounded-full" style={{ width: '82%' }} />
-              </div>
-              <p className="text-[10px] font-mono font-medium leading-relaxed opacity-40 italic">
-                Next billing cycle starts in 14 days.
-              </p>
-           </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <div>
+              <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-2 block">EMAIL ADDRESS</label>
+              <input type="email" defaultValue="m.thorne@arborx.ai" className="w-full px-5 py-3 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-transparent shadow-inner" />
+            </div>
+            <div>
+              <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-2 block">CURRENT PASSWORD</label>
+              <input type="password" placeholder="••••••••" className="w-full px-5 py-3 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-transparent shadow-inner" />
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div>
+              <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-2 block">PRIMARY PHONE</label>
+              <input type="tel" defaultValue="+1 (555) 012-3456" className="w-full px-5 py-3 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-transparent shadow-inner" />
+            </div>
+            <div>
+              <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-2 block">NEW PASSWORD</label>
+              <input type="password" placeholder="Leave blank to keep current" className="w-full px-5 py-3 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-transparent shadow-inner" />
+            </div>
+          </div>
         </div>
-
-        <div className="lg:col-span-8 flex flex-col gap-10">
-           <section className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10">
-              <header className="flex items-center gap-4 mb-12">
-                 <User className="w-6 h-6 text-on-surface opacity-30" />
-                 <h3 className="text-2xl font-display font-bold">Account Access</h3>
-              </header>
-              <div className="grid grid-cols-2 gap-10">
-                 <div className="space-y-8">
-                    <div>
-                       <label className="text-[10px] font-mono font-bold opacity-40 uppercase tracking-widest mb-3 block">EMAIL ADDRESS</label>
-                       <div className="px-5 py-4 bg-surface-container-low rounded-xl text-sm font-black text-on-surface-variant flex items-center justify-between shadow-inner border border-outline-variant/5">
-                          m.thorne@digital-surveyor.io
-                       </div>
-                    </div>
-                    <div>
-                       <label className="text-[10px] font-mono font-bold opacity-40 uppercase tracking-widest mb-3 block">CURRENT PASSWORD</label>
-                       <div className="px-5 py-4 bg-surface-container-low rounded-xl text-sm font-black text-on-surface-variant flex items-center justify-between shadow-inner border border-outline-variant/5">
-                          ••••••••
-                       </div>
-                    </div>
-                 </div>
-                 <div className="space-y-8">
-                    <div>
-                       <label className="text-[10px] font-mono font-bold opacity-40 uppercase tracking-widest mb-3 block">PRIMARY PHONE</label>
-                       <div className="px-5 py-4 bg-surface-container-low rounded-xl text-sm font-black text-on-surface-variant flex items-center justify-between shadow-inner border border-outline-variant/5">
-                          +1 (555) 012-3456
-                       </div>
-                    </div>
-                    <div>
-                       <label className="text-[10px] font-mono font-bold opacity-40 uppercase tracking-widest mb-3 block">NEW PASSWORD</label>
-                       <div className="px-5 py-4 bg-surface-container-high rounded-xl text-sm italic font-medium opacity-40 flex items-center justify-between border border-outline-variant/10">
-                          Leave blank to keep current
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              <button className="mt-12 ml-auto block px-10 py-5 bg-primary text-white rounded-2xl font-black text-sm shadow-xl hover:-translate-y-1 transition-all">Update Credentials</button>
-           </section>
-
-           <section className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10">
-              <header className="flex items-center gap-4 mb-12">
-                 <Bell className="w-6 h-6 text-on-surface opacity-30" />
-                 <h3 className="text-2xl font-display font-bold">Alert Preferences</h3>
-              </header>
-              <div className="space-y-4">
-                 {[
-                   { title: 'High-Risk Anomaly Alerts', desc: 'Immediate SMS notification for critical infrastructure failure predictions.', active: true },
-                   { title: 'Weekly Performance Digest', desc: 'Email summary of district maintenance logs and team efficiency stats.', active: true },
-                   { title: 'System Maintenance', desc: 'In-app notifications for scheduled downtime or version upgrades.', active: false },
-                 ].map((opt, i) => (
-                   <div key={i} className="flex items-center justify-between p-8 bg-surface-container-low rounded-2xl hover:bg-surface-container-high transition-all cursor-pointer border border-outline-variant/5">
-                      <div className="flex-1 pr-12">
-                         <h4 className="font-bold text-sm tracking-wide mb-1 transition-colors group-hover:text-primary">{opt.title}</h4>
-                         <p className="text-xs text-on-surface-variant font-medium leading-relaxed opacity-60">{opt.desc}</p>
-                      </div>
-                      <div className={cn("w-14 h-8 rounded-full p-1.5 transition-colors flex items-center", opt.active ? "bg-primary" : "bg-outline-variant/30")}>
-                         <div className={cn("w-5 h-5 bg-white rounded-full shadow-lg transform transition-transform", opt.active ? "translate-x-6" : "translate-x-0")} />
-                      </div>
-                   </div>
-                 ))}
-              </div>
-           </section>
-
-           <section className="bg-surface-container-lowest p-10 rounded-xxl shadow-sm border border-outline-variant/10">
-              <header className="flex items-center justify-between mb-12">
-                 <div className="flex items-center gap-4">
-                    <Key className="w-6 h-6 text-on-surface opacity-30" />
-                    <h3 className="text-2xl font-display font-bold">API Access</h3>
-                 </div>
-                 <button className="flex items-center gap-2 text-[10px] font-black uppercase text-primary tracking-widest hover:underline hover:underline-offset-4">
-                    <Plus className="w-4 h-4" /> GENERATE KEY
-                 </button>
-              </header>
-
-              <div className="space-y-6">
-                 <div className="bg-surface-container-low rounded-2xl p-8 border border-l-8 border-primary border-outline-variant/5">
-                    <div className="flex justify-between items-start mb-6">
-                       <div className="flex items-center gap-4">
-                          <h4 className="font-bold text-sm">Production_Main_Key</h4>
-                          <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-black uppercase rounded">ACTIVE</span>
-                       </div>
-                       <div className="flex gap-2">
-                          <button className="p-3 hover:bg-white rounded-xl transition-all shadow-sm"><Copy className="w-4 h-4 opacity-50" /></button>
-                          <button className="p-3 hover:bg-white rounded-xl transition-all shadow-sm"><Trash2 className="w-4 h-4 opacity-50" /></button>
-                       </div>
-                    </div>
-                    <div className="p-5 bg-surface-container-high rounded-xl font-mono text-sm font-bold text-on-surface-variant overflow-hidden truncate shadow-inner">
-                       ds_live_••••••••••••••••••••••••••••••••••••••••••
-                    </div>
-                    <div className="flex gap-10 mt-6 text-[10px] font-mono font-bold opacity-30 uppercase tracking-tighter">
-                       <span>CREATED: OCT 12, 2023</span>
-                       <span>LAST USED: 2 HOURS AGO</span>
-                    </div>
-                 </div>
-
-                 <div className="bg-surface-container-low rounded-2xl p-8 border border-outline-variant/5 opacity-50">
-                    <div className="flex justify-between items-center mb-6">
-                       <div className="flex items-center gap-4">
-                          <h4 className="font-bold text-sm">Legacy_Integration_V1</h4>
-                          <span className="px-2 py-0.5 bg-outline-variant/30 rounded text-[10px] font-black uppercase">REVOKED</span>
-                       </div>
-                       <button className="p-3 hover:bg-white rounded-xl transition-all"><Trash2 className="w-4 h-4 opacity-50" /></button>
-                    </div>
-                    <div className="p-5 bg-surface-container-high rounded-xl font-mono text-sm font-bold text-on-surface-variant overflow-hidden truncate italic opacity-40">
-                       ds_old_••••••••••••••••••••••••••••••••••••••••••
-                    </div>
-                 </div>
-              </div>
-
-              <div className="mt-12 p-8 bg-blue-50/50 rounded-2xl border border-blue-500/10 flex items-start gap-4">
-                 <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                 <p className="text-sm font-medium leading-relaxed opacity-80">
-                   For detailed documentation on integrating the <span className="font-bold text-on-surface">Digital Surveyor API</span> into your existing GIS workflows, please visit our <a href="#" className="underline underline-offset-4 decoration-primary font-bold text-primary">Developer Portal.</a>
-                 </p>
-              </div>
-           </section>
+        <div className="mt-8 flex justify-between items-center">
+          <button onClick={() => navigate('/login')} className="px-8 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-black text-sm transition-all border border-red-500/20">
+            Sign Out
+          </button>
+          <button className="px-8 py-4 bg-primary hover:bg-primary-container text-white rounded-xl font-black text-sm shadow-xl hover:-translate-y-1 transition-all">
+            Update Credentials
+          </button>
         </div>
-      </div>
+      </section>
+
+      {/* 2. Alert Preferences */}
+      <section className="bg-surface-container-lowest p-8 md:p-10 rounded-xxl shadow-sm border border-outline-variant/10 overflow-x-auto">
+        <header className="flex items-center gap-4 mb-8">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <Bell className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-2xl font-display font-bold">Alert Preferences</h2>
+        </header>
+
+        <div className="space-y-4 min-w-[600px]">
+          {/* Header Row */}
+          <div className="grid grid-cols-12 gap-4 px-6 text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-2">
+            <div className="col-span-6">CATEGORY</div>
+            <div className="col-span-2 text-center">EMAIL</div>
+            <div className="col-span-2 text-center">SMS</div>
+            <div className="col-span-2 text-center">PUSH</div>
+          </div>
+
+          {[
+            { id: 'treeAnomaly', title: 'Tree Anomaly', desc: 'Vegetation encroachment & health alerts', icon: ShieldAlert },
+            { id: 'powerLine', title: 'Power Line Fault', desc: 'Structural & thermal line issues', icon: Zap },
+            { id: 'system', title: 'System Alerts', desc: 'Maintenance & platform updates', icon: Globe },
+          ].map((cat) => (
+            <div key={cat.id} className="grid grid-cols-12 gap-4 items-center p-6 bg-surface-container-low rounded-xl border border-outline-variant/5 hover:bg-surface-container-highest transition-colors">
+              <div className="col-span-6 flex gap-4 items-center">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                  <cat.icon className="w-5 h-5 text-on-surface-variant" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">{cat.title}</h4>
+                  <p className="text-xs text-on-surface-variant mt-0.5">{cat.desc}</p>
+                </div>
+              </div>
+              <div className="col-span-2 flex justify-center">
+                <Toggle 
+                  active={(alerts as any)[cat.id].email} 
+                  onChange={() => setAlerts(prev => ({ ...prev, [cat.id]: { ...(prev as any)[cat.id], email: !(prev as any)[cat.id].email } }))} 
+                />
+              </div>
+              <div className="col-span-2 flex justify-center">
+                <Toggle 
+                  active={(alerts as any)[cat.id].sms} 
+                  onChange={() => setAlerts(prev => ({ ...prev, [cat.id]: { ...(prev as any)[cat.id], sms: !(prev as any)[cat.id].sms } }))} 
+                />
+              </div>
+              <div className="col-span-2 flex justify-center">
+                <Toggle 
+                  active={(alerts as any)[cat.id].push} 
+                  onChange={() => setAlerts(prev => ({ ...prev, [cat.id]: { ...(prev as any)[cat.id], push: !(prev as any)[cat.id].push } }))} 
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 3. AI Model Settings */}
+      <section className="bg-surface-container-lowest p-8 md:p-10 rounded-xxl shadow-sm border border-outline-variant/10">
+        <header className="flex items-center gap-4 mb-8">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <BrainCircuit className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-2xl font-display font-bold">AI Model Settings</h2>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            <div>
+              <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-3 block">ACTIVE MODEL</label>
+              <select 
+                value={aiSettings.model} 
+                onChange={(e) => setAiSettings({...aiSettings, model: e.target.value})}
+                className="w-full px-5 py-4 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 border border-outline-variant/10 shadow-sm"
+              >
+                <option value="CNN">ArborDetect CNN v2.4</option>
+                <option value="Custom">Custom Ensembled Model</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between p-6 bg-surface-container-low rounded-xl border border-outline-variant/5">
+              <div>
+                <h4 className="font-bold text-sm">Auto-Detection</h4>
+                <p className="text-xs text-on-surface-variant mt-0.5">Run inference on upload</p>
+              </div>
+              <Toggle active={aiSettings.autoDetect} onChange={() => setAiSettings({...aiSettings, autoDetect: !aiSettings.autoDetect})} />
+            </div>
+          </div>
+
+          <div className="space-y-8 bg-surface-container-low p-6 rounded-xl border border-outline-variant/5">
+            <div>
+              <div className="flex justify-between items-end mb-3">
+                <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest">CONFIDENCE THRESHOLD</label>
+                <span className="text-sm font-black text-primary">{aiSettings.confidence}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="50" max="99" 
+                value={aiSettings.confidence}
+                onChange={(e) => setAiSettings({...aiSettings, confidence: parseInt(e.target.value)})}
+                className="w-full h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+              <p className="text-[10px] text-on-surface-variant mt-2 font-medium">Minimum confidence to flag an anomaly</p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-end mb-3">
+                <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest">SENSITIVITY CONTROL</label>
+                <span className="text-sm font-black text-primary">{aiSettings.sensitivity}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="10" max="100" 
+                value={aiSettings.sensitivity}
+                onChange={(e) => setAiSettings({...aiSettings, sensitivity: parseInt(e.target.value)})}
+                className="w-full h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+              <p className="text-[10px] text-on-surface-variant mt-2 font-medium">Higher sensitivity may increase false positives</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Region Settings */}
+      <section className="bg-surface-container-lowest p-8 md:p-10 rounded-xxl shadow-sm border border-outline-variant/10">
+        <header className="flex items-center gap-4 mb-8">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <MapPin className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-2xl font-display font-bold">Region Settings</h2>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <div>
+              <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-3 block">PRIMARY REGION</label>
+              <select 
+                value={regionSettings.region}
+                onChange={(e) => setRegionSettings({...regionSettings, region: e.target.value})}
+                className="w-full px-5 py-4 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 border border-outline-variant/10 shadow-sm"
+              >
+                <option value="Northwest District">Northwest District</option>
+                <option value="Eastern Grid">Eastern Grid</option>
+                <option value="Southern Belt">Southern Belt</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between p-6 bg-surface-container-low rounded-xl border border-outline-variant/5">
+              <div>
+                <h4 className="font-bold text-sm">Auto-Scan Region</h4>
+                <p className="text-xs text-on-surface-variant mt-0.5">Schedule daily drone imports</p>
+              </div>
+              <Toggle active={regionSettings.autoScan} onChange={() => setRegionSettings({...regionSettings, autoScan: !regionSettings.autoScan})} />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-mono font-bold opacity-50 uppercase tracking-widest mb-3 block">RISK LEVEL FILTERS</label>
+            <div className="bg-surface-container-low p-6 rounded-xl border border-outline-variant/5 space-y-3">
+              {['Critical', 'High', 'Medium', 'Low'].map(level => (
+                <label key={level} className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-transparent hover:border-primary/20 cursor-pointer transition-colors group">
+                  <input 
+                    type="checkbox" 
+                    checked={regionSettings.riskFilters.includes(level)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setRegionSettings({...regionSettings, riskFilters: [...regionSettings.riskFilters, level]});
+                      } else {
+                        setRegionSettings({...regionSettings, riskFilters: regionSettings.riskFilters.filter(l => l !== level)});
+                      }
+                    }}
+                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary accent-primary" 
+                  />
+                  <span className="text-sm font-bold group-hover:text-primary transition-colors">{level} Risk Events</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. UI Preferences */}
+      <section className="bg-surface-container-lowest p-8 md:p-10 rounded-xxl shadow-sm border border-outline-variant/10">
+        <header className="flex items-center gap-4 mb-8">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            {uiPrefs.darkMode ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
+          </div>
+          <h2 className="text-2xl font-display font-bold">UI Preferences</h2>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex items-center justify-between p-6 bg-surface-container-low rounded-xl border border-outline-variant/5">
+            <div>
+              <h4 className="font-bold text-sm">Dark Mode</h4>
+              <p className="text-xs text-on-surface-variant mt-0.5">Toggle interface color theme</p>
+            </div>
+            <Toggle active={uiPrefs.darkMode} onChange={() => {
+              const newValue = !uiPrefs.darkMode;
+              setUiPrefs({...uiPrefs, darkMode: newValue});
+              if (newValue) document.documentElement.classList.add('dark');
+              else document.documentElement.classList.remove('dark');
+            }} />
+          </div>
+
+          <div>
+            <select 
+              value={uiPrefs.language}
+              onChange={(e) => setUiPrefs({...uiPrefs, language: e.target.value})}
+              className="w-full px-5 py-6 bg-surface-container-low rounded-xl text-sm font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 border border-outline-variant/10 shadow-sm"
+            >
+              <option value="English">English (US)</option>
+              <option value="Spanish">Español</option>
+              <option value="French">Français</option>
+            </select>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

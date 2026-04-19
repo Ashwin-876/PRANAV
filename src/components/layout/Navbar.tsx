@@ -16,13 +16,12 @@ export default function Navbar({ title }: NavbarProps) {
         </h2>
         
         <nav className="flex items-center gap-8">
-          {['Home', 'Analysis History', 'Documentation', 'About Us'].map((item) => (
+          {['Home', 'Analysis History', 'Documentation'].map((item) => (
             <NavLink 
               key={item} 
               to={item === 'Home' ? '/dashboard' : 
                    item === 'Analysis History' ? '/history' : 
-                   item === 'Documentation' ? '/assets' :
-                   item === 'About Us' ? '/' : '#'} 
+                   item === 'Documentation' ? '/assets' : '#'} 
               className={({ isActive }) => cn(
                 "text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-all border-b-2 py-2 -mb-[10px]",
                 isActive ? "text-primary border-primary" : "border-transparent"
@@ -45,11 +44,12 @@ export default function Navbar({ title }: NavbarProps) {
         </div>
         
         <div className="flex items-center gap-2">
-          {[Bell, Settings].map((Icon, i) => (
-            <button key={i} className="p-3 hover:bg-surface-container-high rounded-xl text-on-surface-variant transition-colors group">
-              <Icon className={cn("w-5 h-5", i === 0 && "group-hover:fill-primary/20")} />
-            </button>
-          ))}
+          <button className="p-3 hover:bg-surface-container-high rounded-xl text-on-surface-variant transition-colors group">
+            <Bell className="w-5 h-5 group-hover:fill-primary/20" />
+          </button>
+          <NavLink to="/settings" className="p-3 hover:bg-surface-container-high rounded-xl text-on-surface-variant transition-colors group">
+            <Settings className="w-5 h-5" />
+          </NavLink>
         </div>
 
         <div className="ml-4 flex items-center gap-3">

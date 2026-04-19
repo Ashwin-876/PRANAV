@@ -33,6 +33,27 @@
   body {
     @apply bg-surface text-on-surface font-sans antialiased;
   }
+
+  .dark {
+    color-scheme: dark;
+    --color-primary: #65de74;
+    --color-primary-container: #005313;
+    --color-on-primary: #00390a;
+    
+    --color-surface: #191c1d;
+    --color-surface-container-low: #1f2223;
+    --color-surface-container-lowest: #141718;
+    --color-surface-container-high: #242728;
+    --color-surface-container-highest: #2b2e2f;
+    
+    --color-on-surface: #e1e3e4;
+    --color-on-surface-variant: #bfc8c9;
+    
+    --color-outline: #899393;
+    --color-outline-variant: #3f4949;
+    
+    --color-error: #ffb4ab;
+  }
 }
 
 @layer components {

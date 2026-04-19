@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Bytez from "bytez.js";
 import { 
   TrendingUp, 
   AlertTriangle, 
@@ -38,6 +40,105 @@ const accuracyData = [
 ];
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState([
+    { 
+      num: '01', 
+      text: 'Accelerate workforce dispatch to Zone A1. Structural thermal anomalies have increased by 12% in the last 48 hours.'
+    },
+    { 
+      num: '02', 
+      text: 'De-prioritize routine inspection of Unit C-Block. AI confidence indicates high reliability for the next 180 days.'
+    },
+    { 
+      num: '03', 
+      text: 'Reallocate 15% of the reactive budget to predictive sensory hardware upgrades for coastal sectors.'
+    }
+  ]);
+  const [isLoadingRecs, setIsLoadingRecs] = useState(true);
+
+  useEffect(() => {
+    const fetchRecs = async () => {
+      try {
+        const sdk = new Bytez("73545f2d4aec98bfe7321e18daa36b72");
+        const model = sdk.model("meta-llama/Llama-3.1-8B-Instruct");
+        
+        const response = await model.run({
+          messages: [
+            { 
+              role: "system", 
+              content: "You are an AI infrastructure analyst. Generate exactly 3 short, actionable strategic recommendations for a utility company monitoring power grids and vegetation. Format as a strict JSON array of strings. Do not include markdown formatting or other text, just the raw JSON array." 
+            },
+            { 
+              role: "user", 
+              content: "Generate 3 strategic recommendations based on recent thermal anomalies and predictive maintenance data." 
+            }
+          ]
+        });
+        
+        if (response && response.output) {
+          let rawText = response.output;
+          const match = rawText.match(/\[.*\]/s);
+          if (match) rawText = match[0];
+          
+          const parsed = JSON.parse(rawText);
+          if (Array.isArray(parsed) && parsed.length >= 3) {
+            setAiRecommendations(parsed.slice(0, 3).map((text, i) => ({ num: `0${i+1}`, text })));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch AI recommendations:", error);
+      } finally {
+        setIsLoadingRecs(false);
+      }
+    };
+
+    fetchRecs();
+  }, []);
+
+  const [liveTrendData, setLiveTrendData] = useState(() => {
+    let last = 99.80;
+    return Array.from({ length: 20 }, (_, i) => {
+      last = last + (Math.random() - 0.5) * 0.05;
+      return { name: `T-${20 - i}`, value: last };
+    });
+  });
+
+  const [liveAccuracyData, setLiveAccuracyData] = useState(() => {
+    let last = 94.1;
+    return Array.from({ length: 20 }, (_, i) => {
+      last = last + (Math.random() - 0.5) * 1.5;
+      return { name: `T-${20 - i}`, value: last };
+    });
+  });
+
+  const [liveSavings, setLiveSavings] = useState(4200000);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveTrendData(prev => {
+        const newData = [...prev.slice(1)];
+        const lastValue = prev[prev.length - 1].value;
+        const newValue = lastValue + (Math.random() - 0.5) * 0.05;
+        newData.push({ name: Date.now().toString(), value: newValue });
+        return newData;
+      });
+
+      setLiveAccuracyData(prev => {
+        const newData = [...prev.slice(1)];
+        const lastValue = prev[prev.length - 1].value;
+        const newValue = Math.min(100, Math.max(80, lastValue + (Math.random() - 0.5) * 1.5));
+        newData.push({ name: Date.now().toString(), value: newValue });
+        return newData;
+      });
+
+      setLiveSavings(prev => prev + (Math.random() * 50 + 10));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleExport = (title?: any) => {
     const isString = typeof title === 'string';
     const reportName = isString ? title : "Regional Infrastructure Integrity Report Q3 2024";
@@ -96,10 +197,14 @@ export default function DashboardPage() {
           <h1 className="text-5xl font-display font-extrabold text-on-surface">Regional Infrastructure Integrity</h1>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high rounded-lg text-sm font-bold border border-outline-variant/20">
-            <Calendar className="w-4 h-4" />
-            Q3 2024
-          </button>
+          <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-container-high rounded-lg text-sm font-bold border border-outline-variant/20 cursor-pointer hover:bg-surface-container-highest transition-colors">
+            <Calendar className="w-4 h-4 text-on-surface-variant" />
+            <input 
+              type="date" 
+              className="bg-transparent border-none outline-none cursor-pointer text-on-surface [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-50 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+              defaultValue="2024-07-01"
+            />
+          </label>
           <button className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high rounded-lg text-sm font-bold border border-outline-variant/20">
             <Filter className="w-4 h-4" />
             Filter
@@ -110,9 +215,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* KPI Cards */}
         {[
-          { label: 'REGIONAL GRID UPTIME', value: '99.82%', sub: '+0.04%', trend: trendData, color: '#004a0e' },
-          { label: 'AI ACCURACY TREND', value: '94.1%', sub: '+2.3%', trend: accuracyData, color: '#3b82f6' },
-          { label: 'MAINTENANCE ROI (SAVED VS. REACTIVE)', value: '₹4.2M', sub: 'PREVENTATIVE SAVINGS', trend: [], color: '#059669', isROI: true }
+          { label: 'REGIONAL GRID UPTIME', value: `${liveTrendData[liveTrendData.length - 1].value.toFixed(2)}%`, sub: '+0.04%', trend: liveTrendData, color: '#ef4444' },
+          { label: 'AI ACCURACY TREND', value: `${liveAccuracyData[liveAccuracyData.length - 1].value.toFixed(1)}%`, sub: '+2.3%', trend: liveAccuracyData, color: '#3b82f6' },
+          { label: 'MAINTENANCE ROI (SAVED VS. REACTIVE)', value: `₹${(liveSavings / 1000000).toFixed(4)}M`, sub: 'PREVENTATIVE SAVINGS', trend: [], color: '#059669', isROI: true }
         ].map((kpi, i) => (
           <div key={i} className="bg-surface-container-lowest p-8 rounded-xxl shadow-sm border border-outline-variant/10">
             <div className="flex justify-between items-start mb-6">
@@ -121,7 +226,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-baseline gap-2 mb-4">
               <span className="text-4xl font-display font-extrabold">{kpi.value}</span>
-              <span className="text-xs font-bold text-primary">{kpi.sub}</span>
+              <span className="text-xs font-bold" style={{ color: kpi.color }}>{kpi.sub}</span>
             </div>
             
             <div className="h-20 w-full">
@@ -134,12 +239,13 @@ export default function DashboardPage() {
                         <stop offset="95%" stopColor={kpi.color} stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="value" stroke={kpi.color} strokeWidth={3} fillOpacity={1} fill={`url(#colorValue${i})`} />
+                    <YAxis hide domain={['dataMin', 'dataMax']} />
+                    <Area type="monotone" dataKey="value" stroke={kpi.color} strokeWidth={3} fillOpacity={1} fill={`url(#colorValue${i})`} isAnimationActive={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="relative h-2 w-full bg-surface-container-high rounded-full mt-8 overflow-hidden">
-                  <div className="absolute top-0 left-0 h-full bg-emerald-600 rounded-full" style={{ width: '70.4%' }} />
+                  <div className="absolute top-0 left-0 h-full bg-emerald-600 rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(liveSavings / 6000000) * 100}%` }} />
                 </div>
               )}
             </div>
@@ -248,32 +354,25 @@ export default function DashboardPage() {
             </header>
 
             <div className="space-y-12 relative z-10">
-              {[
-                { 
-                  num: '01', 
-                  text: 'Accelerate workforce dispatch to Zone A1. Structural thermal anomalies have increased by 12% in the last 48 hours.'
-                },
-                { 
-                  num: '02', 
-                  text: 'De-prioritize routine inspection of Unit C-Block. AI confidence indicates high reliability for the next 180 days.'
-                },
-                { 
-                  num: '03', 
-                  text: 'Reallocate 15% of the reactive budget to predictive sensory hardware upgrades for coastal sectors.'
-                }
-              ].map((rec, i) => (
-                <div key={i} className="flex gap-6">
-                  <span className="text-3xl font-display font-bold opacity-30">{rec.num}</span>
-                  <p className="text-white/80 leading-relaxed font-medium">
-                    {rec.text.split(/(Zone A1|Unit C-Block|coastal sectors)/g).map((part, j) => (
-                      ['Zone A1', 'Unit C-Block', 'coastal sectors'].includes(part) ? <span key={j} className="text-white font-bold">{part}</span> : part
-                    ))}
-                  </p>
+              {isLoadingRecs ? (
+                <div className="flex justify-center items-center h-48">
+                  <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
                 </div>
-              ))}
+              ) : (
+                aiRecommendations.map((rec, i) => (
+                  <div key={i} className="flex gap-6">
+                    <span className="text-3xl font-display font-bold opacity-30">{rec.num}</span>
+                    <p className="text-white/80 leading-relaxed font-medium">
+                      {rec.text.split(/(Zone A1|Unit C-Block|coastal sectors)/g).map((part, j) => (
+                        ['Zone A1', 'Unit C-Block', 'coastal sectors'].includes(part) ? <span key={j} className="text-white font-bold">{part}</span> : part
+                      ))}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
 
-            <button className="w-full mt-24 py-5 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-between px-8 transition-all group relative z-10">
+            <button onClick={() => navigate('/history')} className="w-full mt-24 py-5 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-between px-8 transition-all group relative z-10">
               <span className="font-bold text-sm">View Full Tactical Analysis</span>
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>

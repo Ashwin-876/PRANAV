@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import NewScanModal from './NewScanModal';
-import { NavLink } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   History, 
@@ -13,7 +12,8 @@ import {
   Settings,
   Plus,
   Folder,
-  Clock
+  Clock,
+  Bot
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -25,23 +25,18 @@ const sidebarItems = [
   { icon: Clock, label: 'RECENT SCANS', path: '/recent' },
   { icon: History, label: 'DATA LOGS', path: '/history' },
   { icon: FileText, label: 'REPORTS', path: '/reports' },
-  { icon: Info, label: 'ABOUT US', path: '/' },
+  { icon: Bot, label: 'CHATBOT', path: '/chat' },
 ];
 
 export default function Sidebar() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
     <aside className="w-64 bg-surface-container-low flex flex-col h-screen sticky top-0 border-r border-outline-variant/10">
-      <div className="p-6 mb-8 flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-          <Database className="text-white w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="font-display font-bold text-lg leading-tight">ArborX AI</h1>
-          <p className="text-[10px] font-mono text-on-surface-variant tracking-widest uppercase">V2.4.0-TECHNICAL</p>
-        </div>
+      <div className="p-6 mb-8">
+        <h1 className="font-display font-bold text-xl leading-tight">ArborX AI</h1>
+        <p className="text-[10px] font-mono text-on-surface-variant tracking-widest uppercase mt-1">V2.4.0-TECHNICAL</p>
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
@@ -65,7 +60,7 @@ export default function Sidebar() {
 
       <div className="p-4 mt-auto">
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => navigate('/scan')}
           className="w-full bg-primary hover:bg-primary-container text-white py-3 rounded-md flex items-center justify-center gap-2 transition-colors shadow-lg"
         >
           <Plus className="w-4 h-4" />
@@ -90,7 +85,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
-    <NewScanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Plus, 
   Search, 
@@ -18,6 +18,9 @@ import { motion } from 'motion/react';
 import { jsPDF } from 'jspdf';
 
 export default function ReportsPage() {
+  const [selectedRegion, setSelectedRegion] = useState('Mainline Terminal Alpha');
+  const [selectedDateRange, setSelectedDateRange] = useState('Custom Range');
+
   const handleDownload = (reportName: string) => {
     const doc = new jsPDF();
     const filename = reportName.replace(/\s+/g, '_').toLowerCase();
@@ -99,52 +102,68 @@ export default function ReportsPage() {
             <div>
               <label className="text-[10px] font-mono font-bold tracking-widest text-on-surface-variant uppercase mb-4 block">PROJECT REGION</label>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-6 bg-surface-container-low rounded-xl cursor-not-allowed opacity-60">
+                <div 
+                  onClick={() => setSelectedRegion('Sector 7-G Industrial')}
+                  className={cn("flex items-center justify-between p-6 rounded-xl cursor-pointer transition-all", selectedRegion === 'Sector 7-G Industrial' ? "bg-surface-container-lowest border-2 border-primary ring-4 ring-primary/5" : "bg-surface-container-low opacity-60 hover:opacity-100")}
+                >
                   <div className="flex items-center gap-4">
-                    <MapPin className="w-5 h-5 text-on-surface-variant" />
+                    <MapPin className={cn("w-5 h-5", selectedRegion === 'Sector 7-G Industrial' ? "text-primary" : "text-on-surface-variant")} />
                     <div>
                       <div className="font-bold text-sm">Sector 7-G Industrial</div>
                       <div className="text-xs font-medium text-on-surface-variant mt-1">42.8km surveyed area</div>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5" />
+                  {selectedRegion === 'Sector 7-G Industrial' ? <CheckCircle2 className="w-6 h-6 text-primary" /> : <ChevronRight className="w-5 h-5 text-on-surface-variant" />}
                 </div>
                 
-                <div className="flex items-center justify-between p-6 bg-surface-container-lowest border-2 border-primary rounded-xl ring-4 ring-primary/5">
+                <div 
+                  onClick={() => setSelectedRegion('Mainline Terminal Alpha')}
+                  className={cn("flex items-center justify-between p-6 rounded-xl cursor-pointer transition-all", selectedRegion === 'Mainline Terminal Alpha' ? "bg-surface-container-lowest border-2 border-primary ring-4 ring-primary/5" : "bg-surface-container-low opacity-60 hover:opacity-100")}
+                >
                   <div className="flex items-center gap-4">
-                    <MapPin className="w-5 h-5 text-primary" />
+                    <MapPin className={cn("w-5 h-5", selectedRegion === 'Mainline Terminal Alpha' ? "text-primary" : "text-on-surface-variant")} />
                     <div>
                       <div className="font-bold text-sm">Mainline Terminal Alpha</div>
                       <div className="text-xs font-medium text-on-surface-variant mt-1">12.5km core infrastructure</div>
                     </div>
                   </div>
-                  <CheckCircle2 className="w-6 h-6 text-primary" />
+                  {selectedRegion === 'Mainline Terminal Alpha' ? <CheckCircle2 className="w-6 h-6 text-primary" /> : <ChevronRight className="w-5 h-5 text-on-surface-variant" />}
                 </div>
               </div>
             </div>
 
             <div>
               <label className="text-[10px] font-mono font-bold tracking-widest text-on-surface-variant uppercase mb-4 block">SCAN DATE RANGE</label>
-              <div className="bg-surface-container-low p-8 rounded-xl space-y-8">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-[10px] font-bold uppercase mb-2">FROM</div>
-                    <div className="px-4 py-3 bg-white rounded-lg text-sm font-semibold flex items-center justify-between">
-                      10/01/2024 <Calendar className="w-4 h-4 text-primary" />
-                    </div>
+              <div className="bg-surface-container-low p-6 rounded-xl space-y-6">
+                <div className="flex gap-3">
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[10px] font-bold uppercase mb-2 block">FROM</label>
+                    <input 
+                      type="date" 
+                      defaultValue="2024-10-01"
+                      className="w-full px-3 py-3 bg-surface-container-lowest rounded-lg text-sm tracking-tighter font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-transparent shadow-sm cursor-pointer"
+                    />
                   </div>
-                  <div>
-                    <div className="text-[10px] font-bold uppercase mb-2">TO</div>
-                    <div className="px-4 py-3 bg-white rounded-lg text-sm font-semibold flex items-center justify-between">
-                      11/24/2024 <Calendar className="w-4 h-4 text-primary" />
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[10px] font-bold uppercase mb-2 block">TO</label>
+                    <input 
+                      type="date" 
+                      defaultValue="2024-11-24"
+                      className="w-full px-3 py-3 bg-surface-container-lowest rounded-lg text-sm tracking-tighter font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-transparent shadow-sm cursor-pointer"
+                    />
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 py-2 bg-white rounded-lg text-xs font-bold shadow-sm">Last 7 Days</button>
-                  <button className="flex-1 py-2 bg-white rounded-lg text-xs font-bold shadow-sm">Last Month</button>
-                  <button className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold shadow-lg">Custom Range</button>
+                  {['Last 7 Days', 'Last Month', 'Custom Range'].map(range => (
+                    <button 
+                      key={range}
+                      onClick={() => setSelectedDateRange(range)}
+                      className={cn("flex-1 py-2 rounded-lg text-xs font-bold transition-all", selectedDateRange === range ? "bg-primary text-white shadow-lg" : "bg-surface-container-lowest text-on-surface hover:bg-surface-container-highest shadow-sm")}
+                    >
+                      {range}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

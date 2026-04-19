@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   ChevronDown, 
@@ -63,6 +64,19 @@ const scans = [
 ];
 
 export default function HistoryPage() {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All Types');
+  const [riskFilter, setRiskFilter] = useState('All Risks');
+
+  const filteredScans = scans.filter(scan => {
+    const matchesSearch = scan.classification.toLowerCase().includes(search.toLowerCase()) || 
+                          scan.location.toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === 'All Types' || scan.classification === typeFilter;
+    const matchesRisk = riskFilter === 'All Risks' || scan.risk === riskFilter;
+    return matchesSearch && matchesType && matchesRisk;
+  });
+
   const handleDownload = () => {
     const content = `ArborX Analytics History Report\nGenerated on: ${new Date().toLocaleString()}\n--------------------------------\nTotal Scans: 1,284\nAnomalies Detected: 42\nEfficiency Gain: +18.4%`;
     const blob = new Blob([content], { type: 'text/plain' });
@@ -91,6 +105,8 @@ export default function HistoryPage() {
             <input 
               type="text" 
               placeholder="Scan ID, location or equipment..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-surface-container-high pl-12 pr-4 py-3 rounded-xl border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary/20"
             />
           </div>
@@ -98,16 +114,38 @@ export default function HistoryPage() {
 
         <div className="w-56">
           <label className="text-[10px] font-mono font-bold tracking-widest text-on-surface-variant uppercase mb-2 block">ANOMALY TYPE</label>
-          <button className="w-full flex items-center justify-between px-5 py-3 bg-surface-container-high rounded-xl border border-outline-variant/20 text-sm font-bold">
-            All Types <ChevronDown className="w-4 h-4 text-on-surface-variant" />
-          </button>
+          <div className="relative">
+            <select 
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full appearance-none px-5 py-3 pr-10 bg-surface-container-high rounded-xl border border-outline-variant/20 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer"
+            >
+              <option>All Types</option>
+              <option>Faulty Power Line</option>
+              <option>Vegetation Warning</option>
+              <option>Structural Corroding</option>
+              <option>Insulator Damage</option>
+              <option>Healthy Infrastructure</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
+          </div>
         </div>
 
         <div className="w-56">
           <label className="text-[10px] font-mono font-bold tracking-widest text-on-surface-variant uppercase mb-2 block">RISK LEVEL</label>
-          <button className="w-full flex items-center justify-between px-5 py-3 bg-surface-container-high rounded-xl border border-outline-variant/20 text-sm font-bold">
-            All Risks <ChevronDown className="w-4 h-4 text-on-surface-variant" />
-          </button>
+          <div className="relative">
+            <select 
+              value={riskFilter}
+              onChange={(e) => setRiskFilter(e.target.value)}
+              className="w-full appearance-none px-5 py-3 pr-10 bg-surface-container-high rounded-xl border border-outline-variant/20 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer"
+            >
+              <option>All Risks</option>
+              <option>CRITICAL RISK</option>
+              <option>MODERATE RISK</option>
+              <option>NOMINAL</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
+          </div>
         </div>
 
         <div className="pt-6">
@@ -119,7 +157,7 @@ export default function HistoryPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {scans.map((scan, i) => (
+        {filteredScans.map((scan, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -163,7 +201,7 @@ export default function HistoryPage() {
               </div>
 
               <div className="mt-auto flex gap-2">
-                <button className="flex-1 py-3 bg-surface-container-high hover:bg-surface-container-highest rounded-xl text-xs font-bold transition-colors">
+                <button onClick={() => navigate(`/assets/${i}`, { state: scan })} className="flex-1 py-3 bg-surface-container-high hover:bg-surface-container-highest rounded-xl text-xs font-bold transition-colors">
                   View Details
                 </button>
                 <button className="p-3 bg-blue-100/50 text-blue-700 hover:bg-blue-100 rounded-xl transition-colors">
@@ -216,7 +254,7 @@ export default function HistoryPage() {
       </div>
 
       <div className="flex items-center justify-between py-10 border-t border-outline-variant/20 pt-10">
-        <p className="text-on-surface-variant text-sm font-medium">Showing 6 of 1,284 scans</p>
+        <p className="text-on-surface-variant text-sm font-medium">Showing {filteredScans.length} of 1,284 scans</p>
         <div className="flex gap-2">
           <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors">
             <ChevronRight className="w-5 h-5 rotate-180" />

@@ -1,23 +1,57 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { Maximize2, Rotate3d, Layers, Zap, Box, Thermometer, Calendar, CheckCircle2, FileText } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function AssetDetailPage() {
+  const location = useLocation();
+  const scan = location.state || {
+    classification: 'Tower HV-772',
+    location: '45.3223° N, 122.6765° W — NORTH CASCADE SECTOR',
+    risk: 'OPERATIONAL',
+    riskColor: 'bg-emerald-100/50 text-emerald-700',
+    image: 'https://picsum.photos/seed/tower-inner/1200/675?grayscale'
+  };
+
+  const isNominal = scan.risk === 'NOMINAL' || scan.risk === 'OPERATIONAL';
+
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleScheduleClick = () => {
+    if (dateInputRef.current) {
+      if ('showPicker' in HTMLInputElement.prototype) {
+        dateInputRef.current.showPicker();
+      } else {
+        dateInputRef.current.focus();
+      }
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-12">
       <header className="flex items-end justify-between">
         <div>
           <div className="flex gap-2 mb-4">
-            <span className="px-3 py-1 bg-surface-container-highest rounded text-[10px] font-mono font-bold text-on-surface-variant">TRANSMISSION LINE 404</span>
-            <span className="px-3 py-1 bg-emerald-100/50 text-emerald-700 rounded text-[10px] font-mono font-bold">STATUS: OPERATIONAL</span>
+            <span className="px-3 py-1 bg-surface-container-highest rounded text-[10px] font-mono font-bold text-on-surface-variant">SCAN DETAILS</span>
+            <span className={cn("px-3 py-1 rounded text-[10px] font-mono font-bold", scan.riskColor || (isNominal ? 'bg-emerald-100/50 text-emerald-700' : 'bg-red-100/50 text-red-700'))}>
+              STATUS: {scan.risk}
+            </span>
           </div>
-          <h1 className="text-7xl font-display font-extrabold text-on-surface">Tower HV-772</h1>
-          <p className="text-on-surface-variant font-mono text-sm tracking-wider mt-4">LOCATION: 45.3223° N, 122.6765° W — NORTH CASCADE SECTOR</p>
+          <h1 className="text-7xl font-display font-extrabold text-on-surface">{scan.classification}</h1>
+          <p className="text-on-surface-variant font-mono text-sm tracking-wider mt-4">LOCATION: {scan.location}</p>
         </div>
         <div className="flex gap-4 mb-2">
           <button className="px-8 py-4 bg-surface-container-high rounded-xl text-sm font-bold border border-outline-variant/10 shadow-sm transition-all hover:bg-surface-container-highest">EXPORT DATASET</button>
-          <button className="px-8 py-4 bg-primary text-white rounded-xl text-sm font-bold shadow-xl flex items-center gap-3 transition-transform hover:-translate-y-0.5">
+          <button onClick={handleScheduleClick} className="px-8 py-4 bg-primary text-white rounded-xl text-sm font-bold shadow-xl flex items-center gap-3 transition-transform hover:-translate-y-0.5 relative overflow-hidden">
             <Calendar className="w-4 h-4" /> SCHEDULE INSPECTION
+            <input 
+              ref={dateInputRef}
+              type="date" 
+              className="absolute opacity-0 w-0 h-0"
+              onChange={(e) => {
+                if(e.target.value) alert(`Inspection scheduled for ${e.target.value}`);
+              }}
+            />
           </button>
         </div>
       </header>
@@ -25,7 +59,7 @@ export default function AssetDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 flex flex-col gap-8">
           <div className="bg-surface-container-lowest rounded-[32px] overflow-hidden shadow-sm relative group aspect-[16/9]">
-            <img src="https://picsum.photos/seed/tower-inner/1200/675?grayscale" className="w-full h-full object-cover grayscale transition-transform duration-[15s] group-hover:scale-105" alt="Tower" referrerPolicy="no-referrer" />
+            <img src={scan.image} className="w-full h-full object-cover grayscale-[0.3] transition-transform duration-[15s] group-hover:scale-105" alt="Asset" referrerPolicy="no-referrer" />
             <div className="absolute top-10 left-10 px-8 py-6 bg-black/60 backdrop-blur-md rounded-2xl border border-white/10">
               <div className="text-[10px] font-mono font-bold tracking-widest text-white/50 uppercase mb-2">VISUAL ANALYSIS</div>
               <h3 className="text-2xl font-display font-bold text-white tracking-wide">High-Res LiDAR Overlay</h3>
