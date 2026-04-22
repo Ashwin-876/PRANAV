@@ -16,12 +16,11 @@ export default function Navbar({ title }: NavbarProps) {
         </h2>
         
         <nav className="flex items-center gap-8">
-          {['Home', 'Analysis History', 'Documentation'].map((item) => (
+          {['Home', 'Analysis History'].map((item) => (
             <NavLink 
               key={item} 
               to={item === 'Home' ? '/dashboard' : 
-                   item === 'Analysis History' ? '/history' : 
-                   item === 'Documentation' ? '/assets' : '#'} 
+                   item === 'Analysis History' ? '/history' : '#'} 
               className={({ isActive }) => cn(
                 "text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-all border-b-2 py-2 -mb-[10px]",
                 isActive ? "text-primary border-primary" : "border-transparent"

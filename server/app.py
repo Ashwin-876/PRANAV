@@ -81,26 +81,26 @@ def smart_mock_predict(img, filename):
     # Filename hints
     is_tree = 'tree' in filename or 'leaf' in filename or 'plant' in filename
     
+    # Check for blue sky (Hue 180-240)
+    blue_count = sum(1 for h, s, v in pixels if 140 <= h <= 240 and s > 30)
+
     # Heuristics based on colors and filename
-    # If the image is mostly green and has very little gray, it's a tree.
-    # Otherwise, if it has a noticeable amount of gray/brown (poles, wires, dirt), we treat it as infrastructure.
-    if is_tree or (green_count > total * 0.5 and gray_count < total * 0.05):
+    # If the image is mostly green, or has lots of brown/red but NO blue sky (close up of tree bark), it's a tree.
+    is_tree_by_color = (green_count > total * 0.4) or (disease_color_count > total * 0.4 and blue_count < total * 0.05)
+    
+    if is_tree or is_tree_by_color:
         ratio = disease_color_count / (green_count + 1)
-        if ratio > 0.15 or disease_color_count > (total * 0.1):
-            conf = min(99.5, 80.0 + (ratio * 10))
+        if ratio > 0.15 or disease_color_count > (total * 0.2):
+            conf = min(99.5, 80.0 + (disease_color_count / total * 15))
             return "Tree has disease", round(conf, 1)
         else:
-            conf = min(99.5, 85.0 + (green_count / total * 20))
+            conf = min(99.5, 85.0 + (green_count / total * 10))
             return "Tree is healthy", round(conf, 1)
     else:
         # Infrastructure
         v_sum = sum(v for h, s, v in pixels)
         
-        # Check for blue sky (Hue 180-240)
-        blue_count = sum(1 for h, s, v in pixels if 140 <= h <= 240 and s > 30)
-        
         # A fallen wooden pole or rust will trigger high disease_color_count (browns/reds)
-        # Also, check if there's a significant amount of gray mixed with greens (fallen pole in grass)
         # BUT if there is a massive amount of blue sky, it's usually a healthy tall tower
         if 'fault' in filename or (blue_count < total * 0.3 and (disease_color_count > total * 0.04 or (gray_count > total * 0.05 and green_count > total * 0.2))):
             conf = min(99.5, 85.0 + ((disease_color_count + gray_count) / total * 50))

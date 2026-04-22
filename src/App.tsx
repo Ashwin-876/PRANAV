@@ -19,6 +19,7 @@ import SettingsPage from './pages/SettingsPage';
 import RecentScansPage from './pages/RecentScansPage';
 import ScanAnalysisPage from './pages/ScanAnalysisPage';
 import ChatPage from './pages/ChatPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/datasets" element={<DatasetPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/recent" element={<RecentScansPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/docs" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

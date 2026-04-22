@@ -38,10 +38,10 @@ const mapCenter: [number, number] = [11.2393, 76.9600]; // Karamadai, Coimbatore
 
 // Mock data - localized around Karamadai, Coimbatore
 const initialCrews = [
-  { id: 'c1', name: 'Crew-Alfa', status: 'In Transit', loc: [11.2250, 76.9400], target: [11.2420, 76.9580], color: colors.active, eta: '4 mins', operators: 3, vehicle: '1 Vehicle', img: 'https://picsum.photos/seed/c1/100/100' },
-  { id: 'c2', name: 'Crew-Bravo', status: 'Repairing', loc: [11.2350, 76.9650], target: null, color: colors.repairing, progress: '65%', operators: 2, vehicle: 'Heavy Rig', img: 'https://picsum.photos/seed/c2/100/100' },
-  { id: 'c3', name: 'Crew-Delta', status: 'Stalled', loc: [11.2500, 76.9500], target: null, color: colors.idle, operators: 4, vehicle: 'Crane', img: 'https://picsum.photos/seed/c3/100/100' },
-  { id: 'c4', name: 'Crew-Echo', status: 'In Transit', loc: [11.2600, 76.9750], target: [11.2420, 76.9580], color: colors.active, eta: '12 mins', operators: 2, vehicle: 'Light Truck', img: 'https://picsum.photos/seed/c4/100/100' },
+  { id: 'c1', name: 'Pranav M. Sangeeth', status: 'In Transit', loc: [11.2250, 76.9400], target: [11.2420, 76.9580], color: colors.active, eta: '4 mins', operators: 3, vehicle: '1 Vehicle', img: 'https://picsum.photos/seed/c1/100/100' },
+  { id: 'c2', name: 'R. Gangadharan', status: 'Repairing', loc: [11.2350, 76.9650], target: null, color: colors.repairing, progress: '65%', operators: 2, vehicle: 'Heavy Rig', img: 'https://picsum.photos/seed/c2/100/100' },
+  { id: 'c3', name: 'K. Madhuvinesh', status: 'Stalled', loc: [11.2500, 76.9500], target: null, color: colors.idle, operators: 4, vehicle: 'Crane', img: 'https://picsum.photos/seed/c3/100/100' },
+  { id: 'c4', name: 'Naveena I.', status: 'In Transit', loc: [11.2600, 76.9750], target: [11.2420, 76.9580], color: colors.active, eta: '12 mins', operators: 2, vehicle: 'Light Truck', img: 'https://picsum.photos/seed/c4/100/100' },
 ];
 
 const alerts = [

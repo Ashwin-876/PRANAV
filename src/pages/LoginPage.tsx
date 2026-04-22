@@ -165,17 +165,30 @@ export default function LoginPage() {
 
             <div className="relative py-4 flex items-center justify-center">
               <div className="absolute inset-x-0 h-[1px] bg-white/10"></div>
-              <span className="relative bg-[#050907] px-4 text-xs font-mono font-bold tracking-widest uppercase text-white/30">Or</span>
+              <span className="relative bg-[#050907] px-4 text-xs font-mono font-bold tracking-widest uppercase text-white/30">Or select demo account</span>
             </div>
 
-            <button 
-              type="button" 
-              onClick={handleDemoLogin}
-              disabled={isLoading || isDemoLoading}
-              className="w-full bg-white/[0.03] hover:bg-white/[0.08] text-white font-bold py-4 rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {isDemoLoading ? <Loader2 className="w-5 h-5 animate-spin text-white/50" /> : 'One-Click Demo Login'}
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { name: 'Pranav M. Sangeeth', email: 'pranav@arborx.ai', pass: 'admin123' },
+                { name: 'R. Gangadharan', email: 'ganga@arborx.ai', pass: 'admin123' },
+                { name: 'K. Madhuvinesh', email: 'madhu@arborx.ai', pass: 'admin123' },
+                { name: 'Naveena I.', email: 'naveena@arborx.ai', pass: 'admin123' },
+              ].map((account) => (
+                <button
+                  key={account.name}
+                  type="button"
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword(account.pass);
+                  }}
+                  className="bg-white/[0.03] hover:bg-white/[0.08] text-white/70 hover:text-white text-xs font-bold py-3 px-3 rounded-xl border border-white/10 transition-all text-left truncate"
+                >
+                  <div className="font-display text-sm truncate">{account.name}</div>
+                  <div className="text-[10px] font-mono opacity-50 truncate mt-0.5">{account.email}</div>
+                </button>
+              ))}
+            </div>
           </form>
 
         </motion.div>

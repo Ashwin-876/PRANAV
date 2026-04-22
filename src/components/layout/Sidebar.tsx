@@ -13,18 +13,20 @@ import {
   Plus,
   Folder,
   Clock,
-  Bot
+  Bot,
+  BarChart3,
+  Activity
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'OVERVIEW', path: '/dashboard' },
-  { icon: Database, label: 'ASSETS', path: '/assets' },
   { icon: Users, label: 'WORKFORCE', path: '/workforce' },
   { icon: Folder, label: 'DATA INSIGHTS', path: '/datasets' },
   { icon: Clock, label: 'RECENT SCANS', path: '/recent' },
-  { icon: History, label: 'DATA LOGS', path: '/history' },
+  { icon: Activity, label: 'ANALYSIS HISTORY', path: '/history' },
   { icon: FileText, label: 'REPORTS', path: '/reports' },
+  { icon: BarChart3, label: 'ANALYTICS', path: '/analytics' },
   { icon: Bot, label: 'CHATBOT', path: '/chat' },
 ];
 

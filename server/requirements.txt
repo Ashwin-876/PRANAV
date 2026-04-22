@@ -3,3 +3,5 @@ Flask-Cors
 Pillow
 numpy
 tensorflow
+matplotlib
+scikit-learn

@@ -309,8 +309,8 @@ export default function ReportsPage() {
 
         <div className="relative rounded-xxl overflow-hidden aspect-[4/3] group shadow-xl">
           <img 
-            src="https://picsum.photos/seed/aerial/800/600" 
-            className="w-full h-full object-cover grayscale transition-transform duration-[10s] group-hover:scale-110" 
+            src="/aerial_infrastructure.png" 
+            className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" 
             alt="Aerial view"
             referrerPolicy="no-referrer"
           />
