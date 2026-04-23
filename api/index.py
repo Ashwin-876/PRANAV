@@ -4,27 +4,12 @@ import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
-import numpy as np
-
+# Removed tensorflow and numpy to ensure Vercel build success
+# We are relying strictly on the smart mock fallback.
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains so the React app can call this API
-
-# Try to load the TensorFlow model if it exists
-MODEL_PATH = 'model.h5'
 model = None
-try:
-    # Set logging level to reduce TF spam
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    import tensorflow as tf
-    from tensorflow.keras.models import load_model
-    
-    if os.path.exists(MODEL_PATH):
-        model = load_model(MODEL_PATH)
-        print(f"Model loaded successfully from {MODEL_PATH}!")
-    else:
-        print(f"Warning: {MODEL_PATH} not found. Falling back to smart mock.")
-except Exception as e:
-    print(f"Warning: Could not load tensorflow or model.h5. Error: {e}")
+
 
 # Class labels must match alphabetical order from `image_dataset_from_directory`
 CLASSES = [
