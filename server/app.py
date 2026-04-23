@@ -89,8 +89,8 @@ def smart_mock_predict(img, filename):
         tree_pred = "Tree is healthy"
 
     # Power line evaluation
-    # Prevent false positives on close-up tree pictures (high green count)
-    is_tree_closeup = green_count > total * 0.25
+    # Prevent false positives on close-up tree pictures (high green) or tree bark (massive brown)
+    is_tree_closeup = green_count > total * 0.25 or disease_color_count > total * 0.5
     
     if 'fault' in filename or (not is_tree_closeup and blue_count < total * 0.3 and (disease_color_count > total * 0.04 or gray_count > total * 0.1)):
         pl_conf = min(99.5, 85.0 + ((disease_color_count + gray_count) / total * 50))
