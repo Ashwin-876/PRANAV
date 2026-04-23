@@ -55,6 +55,13 @@ export default function ScanAnalysisPage() {
       setErrorMsg("Invalid file type. Please upload a JPG or PNG.");
       return;
     }
+    
+    // Vercel serverless functions have a 4.5MB payload limit
+    if (uploadedFile.size > 4.4 * 1024 * 1024) {
+      setErrorMsg(`Image is too large (${(uploadedFile.size / 1024 / 1024).toFixed(1)}MB). Please upload an image smaller than 4.5MB.`);
+      return;
+    }
+    
     setFile(uploadedFile);
     setResult(null);
   };
