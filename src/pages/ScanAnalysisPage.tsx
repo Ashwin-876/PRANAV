@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UploadCloud, FileImage, ShieldCheck, AlertTriangle, RefreshCw } from 'lucide-react';
+import { UploadCloud, FileImage, ShieldCheck, AlertTriangle, RefreshCw, Zap, TreePine } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { saveScan } from '../lib/scanStore';
 
@@ -9,9 +9,16 @@ export default function ScanAnalysisPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [result, setResult] = useState<{
-    prediction: string;
-    confidence: number;
-    statusColor: string;
+    powerLine: {
+      prediction: string;
+      confidence: number;
+      statusColor: string;
+    };
+    tree: {
+      prediction: string;
+      confidence: number;
+      statusColor: string;
+    };
   } | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -79,27 +86,35 @@ export default function ScanAnalysisPage() {
 
       const data = await response.json();
       
-      let statusColor = "green";
-      let resultType: 'danger' | 'warning' | 'healthy' = 'healthy';
-      
-      if (data.prediction === "Tree has disease" || data.prediction === "Power line anomaly detected") {
-        statusColor = "red";
-        resultType = 'danger';
-      }
+      const getStatusColor = (pred: string) => {
+        return (pred === "Tree has disease" || pred === "Power line anomaly detected") ? "red" : "green";
+      };
 
       setResult({
-        prediction: data.prediction,
-        confidence: data.confidence,
-        statusColor: statusColor
+        powerLine: {
+          prediction: data.power_line.prediction,
+          confidence: data.power_line.confidence,
+          statusColor: getStatusColor(data.power_line.prediction)
+        },
+        tree: {
+          prediction: data.tree.prediction,
+          confidence: data.tree.confidence,
+          statusColor: getStatusColor(data.tree.prediction)
+        }
       });
 
       // Persist the scan locally
+      let mainResultType: 'danger' | 'warning' | 'healthy' = 'healthy';
+      if (data.power_line.prediction === "Power line anomaly detected" || data.tree.prediction === "Tree has disease") {
+        mainResultType = 'danger';
+      }
+
       saveScan({
         fileName: file.name,
         fileSize: file.size,
-        resultType: resultType,
-        resultText: data.prediction,
-        confidence: `${data.confidence.toFixed(1)}%`,
+        resultType: mainResultType,
+        resultText: `${data.power_line.prediction} & ${data.tree.prediction}`,
+        confidence: `${Math.max(data.power_line.confidence, data.tree.confidence).toFixed(1)}%`,
       });
 
     } catch (err: any) {
@@ -233,41 +248,93 @@ export default function ScanAnalysisPage() {
       {result && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-display font-bold mb-6">Scan Results</h2>
+          
+          <div className="w-full bg-red-50 text-red-700 border border-red-200 p-4 rounded-xl font-bold flex items-center gap-2 mb-6 shadow-sm">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            AI detected results for both infrastructure and vegetation in this image.
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Power Line Card */}
             <div className={cn(
-              "p-8 rounded-xxl shadow-sm border-2 flex flex-col justify-center items-center text-center",
-              result.statusColor === 'red' ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
+              "p-6 rounded-xxl shadow-sm border flex flex-col",
+              result.powerLine.statusColor === 'red' ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
             )}>
-              {result.statusColor === 'red' ? (
-                <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-              ) : (
-                <ShieldCheck className="w-16 h-16 text-emerald-500 mb-4" />
-              )}
-              <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-on-surface-variant mb-2">PREDICTED CLASS</div>
-              <h3 className={cn(
-                "text-3xl font-display font-bold",
-                result.statusColor === 'red' ? "text-red-700" : "text-emerald-700"
-              )}>
-                {result.prediction}
-              </h3>
+              <div className="flex items-center gap-3 mb-6">
+                <Zap className={cn("w-5 h-5", result.powerLine.statusColor === 'red' ? "text-red-600" : "text-emerald-600")} />
+                <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-on-surface-variant">POWER LINE STATUS</div>
+              </div>
+              
+              <div className="flex items-center gap-3 mb-8">
+                {result.powerLine.statusColor === 'red' ? (
+                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                ) : (
+                  <ShieldCheck className="w-8 h-8 text-emerald-600" />
+                )}
+                <h3 className={cn(
+                  "text-2xl font-display font-bold",
+                  result.powerLine.statusColor === 'red' ? "text-red-700" : "text-emerald-700"
+                )}>
+                  {result.powerLine.prediction}
+                </h3>
+              </div>
+              
+              <div className="mt-auto">
+                <div className="flex justify-between items-end mb-2">
+                  <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-on-surface-variant">CONFIDENCE</div>
+                  <div className="text-lg font-display font-bold text-on-surface">{result.powerLine.confidence.toFixed(1)}%</div>
+                </div>
+                <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                  <div 
+                    className={cn("h-full rounded-full transition-all duration-1000", result.powerLine.statusColor === 'red' ? "bg-red-600" : "bg-emerald-600")}
+                    style={{ width: `${result.powerLine.confidence}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            
-            <div className="bg-surface-container-lowest p-8 rounded-xxl shadow-sm border border-outline-variant/10 flex flex-col justify-center">
-              <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-on-surface-variant mb-4">MODEL CONFIDENCE</div>
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-5xl font-display font-extrabold">{result.confidence.toFixed(1)}%</span>
+
+            {/* Tree Card */}
+            <div className={cn(
+              "p-6 rounded-xxl shadow-sm border flex flex-col",
+              result.tree.statusColor === 'red' ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
+            )}>
+              <div className="flex items-center gap-3 mb-6">
+                <TreePine className={cn("w-5 h-5", result.tree.statusColor === 'red' ? "text-red-600" : "text-emerald-600")} />
+                <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-on-surface-variant">TREE / VEGETATION STATUS</div>
               </div>
-              <div className="w-full h-3 bg-surface-container-high rounded-full overflow-hidden">
-                <div 
-                  className={cn("h-full rounded-full transition-all duration-1000", result.statusColor === 'red' ? "bg-red-500" : "bg-emerald-500")}
-                  style={{ width: `${result.confidence}%` }}
-                />
+              
+              <div className="flex items-center gap-3 mb-8">
+                {result.tree.statusColor === 'red' ? (
+                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                ) : (
+                  <ShieldCheck className="w-8 h-8 text-emerald-600" />
+                )}
+                <h3 className={cn(
+                  "text-2xl font-display font-bold",
+                  result.tree.statusColor === 'red' ? "text-red-700" : "text-emerald-700"
+                )}>
+                  {result.tree.prediction}
+                </h3>
               </div>
-              <p className="text-xs text-on-surface-variant mt-4">
-                The CNN model is highly confident in this classification based on learned features from the training dataset.
-              </p>
+              
+              <div className="mt-auto">
+                <div className="flex justify-between items-end mb-2">
+                  <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-on-surface-variant">CONFIDENCE</div>
+                  <div className="text-lg font-display font-bold text-on-surface">{result.tree.confidence.toFixed(1)}%</div>
+                </div>
+                <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                  <div 
+                    className={cn("h-full rounded-full transition-all duration-1000", result.tree.statusColor === 'red' ? "bg-red-600" : "bg-emerald-600")}
+                    style={{ width: `${result.tree.confidence}%` }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
+          
+          <p className="text-xs text-on-surface-variant mt-6 text-center">
+            Results are independently computed by the CNN model for infrastructure and vegetation.
+          </p>
         </div>
       )}
     </div>

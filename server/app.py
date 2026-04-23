@@ -77,37 +77,26 @@ def smart_mock_predict(img, filename):
             disease_color_count += 1
             
     total = len(pixels)
-    
-    # Filename hints
-    is_tree = 'tree' in filename or 'leaf' in filename or 'plant' in filename
-    
-    # Check for blue sky (Hue 180-240)
     blue_count = sum(1 for h, s, v in pixels if 140 <= h <= 240 and s > 30)
 
-    # Heuristics based on colors and filename
-    # If the image is mostly green, or has lots of brown/red but NO blue sky (close up of tree bark), it's a tree.
-    is_tree_by_color = (green_count > total * 0.4) or (disease_color_count > total * 0.4 and blue_count < total * 0.05)
-    
-    if is_tree or is_tree_by_color:
-        ratio = disease_color_count / (green_count + 1)
-        if ratio > 0.15 or disease_color_count > (total * 0.2):
-            conf = min(99.5, 80.0 + (disease_color_count / total * 15))
-            return "Tree has disease", round(conf, 1)
-        else:
-            conf = min(99.5, 85.0 + (green_count / total * 10))
-            return "Tree is healthy", round(conf, 1)
+    # Tree evaluation
+    ratio = disease_color_count / (green_count + 1)
+    if ratio > 0.15 or disease_color_count > (total * 0.2):
+        tree_conf = min(99.5, 80.0 + (disease_color_count / total * 15))
+        tree_pred = "Tree has disease"
     else:
-        # Infrastructure
-        v_sum = sum(v for h, s, v in pixels)
-        
-        # A fallen wooden pole or rust will trigger high disease_color_count (browns/reds)
-        # BUT if there is a massive amount of blue sky, it's usually a healthy tall tower
-        if 'fault' in filename or (blue_count < total * 0.3 and (disease_color_count > total * 0.04 or (gray_count > total * 0.05 and green_count > total * 0.2))):
-            conf = min(99.5, 85.0 + ((disease_color_count + gray_count) / total * 50))
-            return "Power line anomaly detected", round(conf, 1)
-        else:
-            conf = min(99.5, 88.0 + (blue_count / total * 10))
-            return "Power line safe", round(conf, 1)
+        tree_conf = min(99.5, 85.0 + (green_count / total * 10))
+        tree_pred = "Tree is healthy"
+
+    # Power line evaluation
+    if 'fault' in filename or (blue_count < total * 0.3 and (disease_color_count > total * 0.04 or (gray_count > total * 0.05 and green_count > total * 0.2))):
+        pl_conf = min(99.5, 85.0 + ((disease_color_count + gray_count) / total * 50))
+        pl_pred = "Power line anomaly detected"
+    else:
+        pl_conf = min(99.5, 88.0 + (blue_count / total * 10))
+        pl_pred = "Power line safe"
+
+    return pl_pred, round(pl_conf, 1), tree_pred, round(tree_conf, 1)
 
 def is_invalid_image(img, filename):
     filename = filename.lower()
@@ -144,19 +133,33 @@ def scan_image():
         # Simulate processing time for UX if mocked
         if model is None:
             time.sleep(1.5)
-            predicted_label, confidence = smart_mock_predict(img, image_file.filename)
+            pl_pred, pl_conf, tree_pred, tree_conf = smart_mock_predict(img, image_file.filename)
         else:
             # ACTUAL CNN INFERENCE
             img_array = preprocess_image(img)
-            predictions = model.predict(img_array)
-            class_idx = np.argmax(predictions[0])
-            confidence = round(float(np.max(predictions[0])) * 100, 1)
-            predicted_label = CLASSES[class_idx]
+            predictions = model.predict(img_array)[0]
+            
+            # Normalize probabilities within sub-groups
+            pl_sum = predictions[0] + predictions[1] + 1e-9
+            pl_idx = 0 if predictions[0] > predictions[1] else 1
+            pl_pred = CLASSES[pl_idx]
+            pl_conf = round(float((predictions[pl_idx] / pl_sum) * 100), 1)
+            
+            tree_sum = predictions[2] + predictions[3] + 1e-9
+            tree_idx = 2 if predictions[2] > predictions[3] else 3
+            tree_pred = CLASSES[tree_idx]
+            tree_conf = round(float((predictions[tree_idx] / tree_sum) * 100), 1)
 
         # Return JSON response
         return jsonify({
-            "prediction": predicted_label,
-            "confidence": confidence
+            "power_line": {
+                "prediction": pl_pred,
+                "confidence": pl_conf
+            },
+            "tree": {
+                "prediction": tree_pred,
+                "confidence": tree_conf
+            }
         })
         
     except Exception as e:
