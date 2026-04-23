@@ -67,7 +67,7 @@ export default function ScanAnalysisPage() {
       formData.append('image', file);
 
       // Call the backend API
-      const response = await fetch('http://localhost:5001/api/scan', {
+      const response = await fetch('/api/scan', {
         method: 'POST',
         body: formData,
       });
