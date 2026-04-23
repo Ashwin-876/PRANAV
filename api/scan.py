@@ -51,7 +51,10 @@ def smart_mock_predict(img, filename):
         tree_pred = "Tree is healthy"
 
     # Power line evaluation
-    if 'fault' in filename or (blue_count < total * 0.3 and (disease_color_count > total * 0.04 or (gray_count > total * 0.05 and green_count > total * 0.2))):
+    # Prevent false positives on close-up tree pictures (high green count)
+    is_tree_closeup = green_count > total * 0.25
+    
+    if 'fault' in filename or (not is_tree_closeup and blue_count < total * 0.3 and (disease_color_count > total * 0.04 or gray_count > total * 0.1)):
         pl_conf = min(99.5, 85.0 + ((disease_color_count + gray_count) / total * 50))
         pl_pred = "Power line anomaly detected"
     else:
